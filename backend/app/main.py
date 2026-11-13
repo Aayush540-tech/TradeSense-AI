@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.redis_client import redis_client
 from app.services.market_feed import market_feed
-from app.routers import stream, chat, research
+from app.routers import stream, chat, research, risk
 
 logging.basicConfig(
     level=logging.INFO,
@@ -48,6 +48,7 @@ app.add_middleware(
 app.include_router(stream.router)
 app.include_router(chat.router)
 app.include_router(research.router)
+app.include_router(risk.router)
 
 
 @app.get("/health", tags=["Health"])

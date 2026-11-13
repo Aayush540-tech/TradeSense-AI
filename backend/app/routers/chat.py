@@ -93,3 +93,4 @@ async def query_chat_endpoint(request: ChatRequest):
         latency_ms=round(latency_ms, 2),
         model="gemini-1.5-flash"
     )
+

@@ -122,3 +122,4 @@ async def test_research_filing_analysis():
         assert len(data["key_takeaways"]) > 0
         assert len(data["risk_factors"]) > 0
         assert "disclaimer" in data
+

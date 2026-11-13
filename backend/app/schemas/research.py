@@ -19,3 +19,4 @@ class ResearchResponse(BaseModel):
     language: str
     model: str
     disclaimer: str
+

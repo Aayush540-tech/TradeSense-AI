@@ -99,3 +99,4 @@ def ensure_disclaimer(response_text: str) -> str:
     if disclaimer_snippet not in response_text:
         return f"{response_text.strip()}\n\n---\n*{settings.SEBI_DISCLAIMER_TEXT}*"
     return response_text
+

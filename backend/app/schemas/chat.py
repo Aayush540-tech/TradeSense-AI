@@ -21,3 +21,4 @@ class ChatResponse(BaseModel):
     is_refused: bool = False
     latency_ms: float
     model: str
+

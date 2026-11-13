@@ -5,66 +5,31 @@
 
 ---
 
-## 🤖 Google AI Tools & Models (Dedicated Breakdown)
+## 🧠 1. Google AI Models
 
-TradeSense AI uses a tiered, multi-model Google AI architecture on **Google Vertex AI** and the **Google GenAI SDK**, matching each task with the optimal model for latency, reasoning depth, and cost efficiency:
+TradeSense AI leverages Google's state-of-the-art foundation models via Vertex AI and Google AI Studio:
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           GOOGLE AI ARCHITECTURE                            │
-├─────────────────────────┬─────────────────────────┬─────────────────────────┤
-│     Gemini 1.5 Flash    │     Gemini 1.5 Pro      │ Vertex AI Agent Builder │
-├─────────────────────────┼─────────────────────────┼─────────────────────────┤
-│ • TTFT < 1.0s Streaming │ • 2M+ Context Window    │ • Autonomous Workflows  │
-│ • Behavioral Risk Alerts│ • NSE Filings (PDFs)    │ • Trade Book Auditor    │
-│ • Live PCR/IV Analytics │ • Earnings Transcripts  │ • Rule Breaker Cooldown │
-│ • Bilingual Calm Nudges │ • Multimodal Charts     │ • Multi-Step Reasoning  │
-└─────────────────────────┴─────────────────────────┴─────────────────────────┘
-```
-
-### 1. Google Gemini 1.5 Flash
-* **Integration**: Google Vertex AI & Google GenAI SDK (`model="gemini-1.5-flash"`)
-* **Role**: Real-Time Streaming Copilot & Behavioral Circuit Breakers
-* **Latency Profile**: Ultra-low latency with **Time-to-First-Token (TTFT) < 1.0s**
-* **Key Use Cases**:
-  * **Real-Time Market Q&A**: Answers conversational user queries (e.g., *"What does a PCR of 1.35 mean for BankNifty today?"*) enriched with sub-50ms live tick data.
-  * **Behavioral Risk Nudges**: Generates calm, rational 1-sentence alerts in Hindi and English when the Risk Engine detects emotional or revenge trading.
-  * **Mathematical Derivatives Breakdown**: Explains Option Greeks, Implied Volatility (IV), and Max Pain clusters without predictive speculation.
-
-### 2. Google Gemini 1.5 Pro
-* **Integration**: Google Vertex AI & Google GenAI SDK (`model="gemini-1.5-pro"`)
-* **Role**: Deep Multimodal Filing & Financial Document Intelligence
-* **Context Capacity**: 2,000,000+ tokens
-* **Key Use Cases**:
-  * **Corporate Filing (PDF) Ingestion**: Digests complex 50+ page NSE corporate announcements, quarterly earnings releases, and annual reports.
-  * **Operating Margin Extraction**: Isolates EBITDA margin expansion/contraction, revenue drivers, and balance sheet debt covenants.
-  * **Management Interview & Audio Transcript Parsing**: Extracts forward-looking guidance and capex plans from management interviews.
-  * **Multimodal Candlestick Analysis**: Reads chart screenshots to identify mathematical support/resistance levels and standard deviation bands.
-
-### 3. Vertex AI Agent Builder & Function Calling
-* **Integration**: Google Cloud Vertex AI Reasoning Engine / Function Calling API
-* **Role**: Autonomous Risk & Trade Book Guardian
-* **Key Use Cases**:
-  * **Trade Book Auditor**: Autonomous agent that periodically audits user trade executions via read-only broker APIs.
-  * **Revenge Trading Detector**: Detects rapid consecutive losses (>5 trades in 30 minutes following a drawdown) and triggers mandatory cooldown timers.
-  * **Conversational Backtesting Compiler**: Parses natural language trade ideas into structured Python/BigQuery SQL backtesting parameters.
-
-### 4. Vernacular Multilingual Prompt Engine
-* **Integration**: System-guided prompt conditioning across Gemini 1.5 Flash & Pro
-* **Supported Languages**: **Hindi (हिन्दी / Hinglish)**, **Gujarati (ગુજરાતી)**, **Marathi (मराठी)**, and **English**
-* **Purpose**: Empowers tier-2 and tier-3 Indian retail traders by explaining complex derivative risks and corporate filings in their mother tongue.
+| Model | Architecture & Specs | Primary Role in TradeSense AI | Key Use Cases |
+| :--- | :--- | :--- | :--- |
+| **Google Gemini 1.5 Flash** | • Ultra-low latency<br>• Streaming tokens<br>• **TTFT < 1.0s** | Real-Time Copilot & Behavioral Circuit Breakers | • Conversational risk Q&A with live index context<br>• Sub-second behavioral nudges (Hindi/English)<br>• Mathematical Put-Call Ratio (PCR) analysis<br>• Option Greeks & volatility breakdown |
+| **Google Gemini 1.5 Pro** | • **2,000,000+ token** context<br>• Multimodal reasoning<br>• Complex document parsing | Deep Multimodal Financial Research | • Ingesting 50+ page NSE corporate filings (PDFs)<br>• Extracting EBITDA/operating margin impacts<br>• Parsing earnings call audio & transcripts<br>• Candlestick chart screenshot analysis |
 
 ---
 
-## ☁️ Google Cloud & Firebase Supporting Infrastructure
+## 🛠️ Google Tools & Cloud Developer Services
 
-| Google Cloud Service | Role in TradeSense AI | Performance Target |
+The developer tools, SDKs, and cloud platforms powering TradeSense AI's low-latency architecture:
+
+| Category | Google Tool / Service | Technical Purpose in TradeSense AI |
 | :--- | :--- | :--- |
-| **Google Cloud Run** | Serverless microservices hosting FastAPI backends | Auto-scales to 0-100+ instances during 9:15 AM & 3:30 PM market spikes |
-| **Cloud Memorystore (Redis)** | High-throughput in-memory cache for live ticks & option chains | **< 50ms read/write latency** |
-| **Cloud Firestore** | Real-time NoSQL database for user alerts, journals & scorecards | Sub-second sync across web and mobile clients |
-| **Google BigQuery** | Petabyte-scale data warehouse for historical tick data | Executes 1-year 5-min candlestick backtests in < 3 seconds |
-| **Firebase Hosting** | Fast global CDN hosting for client applications | High-performance delivery for Flutter Web |
+| **AI / Agent Tools** | **Vertex AI Agent Builder** | Builds autonomous multi-step agents that audit user trade books, calculate consecutive loss frequency, and enforce cooldown rules. |
+| **AI / Agent Tools** | **Vertex AI Function Calling** | Enables models to invoke structured local tools (e.g., query Redis cache, fetch live option chains, execute backtests). |
+| **SDK / Libraries** | **Google GenAI SDK (`google-genai`)** | High-performance Python client managing asynchronous streaming, token callbacks, and multimodal byte uploads. |
+| **Compute** | **Google Cloud Run** | Serverless microservice platform hosting FastAPI; automatically scales instances to handle 9:15 AM & 3:30 PM Indian market spikes. |
+| **In-Memory Cache** | **Cloud Memorystore (Redis)** | High-throughput managed Redis cluster guaranteeing **< 50ms read/write latency** for live ticks and option chains. |
+| **Real-Time Data** | **Cloud Firestore** | Real-time NoSQL database syncing behavioral trade journals, risk scorecards, and push notifications to web/mobile clients. |
+| **Analytics Engine** | **Google BigQuery** | Serverless data warehouse storing historical tick datasets and executing SQL-based strategy backtests in seconds. |
+| **Frontend Delivery**| **Firebase Hosting** | High-speed global CDN for distributing the Flutter Web application with SSL and edge caching. |
 
 ---
 

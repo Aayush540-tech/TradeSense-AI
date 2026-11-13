@@ -68,6 +68,11 @@ Thumbs.db
 *.swp
 *.swo
 
+# Hackathon / Internal Instructions
+Gemini.md
+gemini.md
+GEMINI.md
+
 # Logs
 logs/
 *.log

@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TradeSense AI — Risk Intelligence & Co-Pilot</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js for Backtest Equity Curve -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            },
+            darkBg: '#090d16',
+            darkCard: '#111827',
+            darkBorder: '#1f2937',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: #090d16; color: #f3f4f6; }
+    .glow-green { box-shadow: 0 0 15px rgba(16, 185, 129, 0.2); }
+    .glow-red { box-shadow: 0 0 15px rgba(239, 68, 68, 0.25); }
+    .glass-card { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+    @keyframes pulse-ring { 0% { transform: scale(0.95); opacity: 0.8; } 50% { transform: scale(1.05); opacity: 0.4; } 100% { transform: scale(0.95); opacity: 0.8; } }
+    .cooldown-pulse { animation: pulse-ring 2s infinite ease-in-out; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans antialiased text-gray-200">
+
+  <!-- TOP TICKER BAR (Live WebSockets) -->
+  <header class="border-b border-darkBorder bg-gray-950/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center space-x-3">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center font-bold text-white shadow-lg">
+          TS
+        </div>
+        <div>
+          <span class="font-bold text-lg tracking-tight bg-gradient-to-r from-white via-indigo-100 to-indigo-400 bg-clip-text text-transparent">TradeSense AI</span>
+          <span class="ml-2 text-xs px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-mono">Buildathon 2026</span>
+        </div>
+      </div>
+
+      <!-- Real-Time Index Tickers -->
+      <div class="flex items-center space-x-4 text-xs font-mono overflow-x-auto py-1" id="ticker-container">
+        <div class="flex items-center space-x-1.5 px-3 py-1 rounded-md bg-gray-900 border border-gray-800" id="tick-nifty">
+          <span class="text-gray-400">NIFTY 50:</span>
+          <span class="font-semibold" id="val-nifty">24,150.00</span>
+          <span class="text-emerald-400" id="chg-nifty">+0.22%</span>
+        </div>
+        <div class="flex items-center space-x-1.5 px-3 py-1 rounded-md bg-gray-900 border border-gray-800" id="tick-banknifty">
+          <span class="text-gray-400">BANKNIFTY:</span>
+          <span class="font-semibold" id="val-banknifty">51,800.00</span>
+          <span class="text-emerald-400" id="chg-banknifty">+0.35%</span>
+        </div>
+        <div class="flex items-center space-x-1.5 px-3 py-1 rounded-md bg-gray-900 border border-gray-800" id="tick-pcr">
+          <span class="text-gray-400">NIFTY PCR:</span>
+          <span class="font-semibold text-indigo-300" id="val-pcr">1.15</span>
+          <span class="text-xs px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300" id="val-sentiment">BULLISH</span>
+        </div>
+        <div class="flex items-center space-x-1.5 px-2 py-1 rounded text-gray-400">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" id="ws-indicator"></span>
+          <span class="text-[11px]" id="ws-label">Live WS</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- BEHAVIORAL COOLDOWN BANNER (Hidden by default, triggered by Revenge Trading rule) -->
+  <div id="cooldown-banner" class="hidden bg-rose-950/80 border-b border-rose-500/40 p-4 transition-all">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3 text-sm">
+      <div class="flex items-center space-x-3">
+        <div class="w-9 h-9 rounded-full bg-rose-600/30 border border-rose-500 flex items-center justify-center text-rose-300 font-bold cooldown-pulse">
+          ⚠️
+        </div>
+        <div>
+          <div class="font-semibold text-rose-200" id="alert-title">Behavioral Risk Alert: Revenge Trading Detected</div>
+          <div class="text-rose-300/80 text-xs mt-0.5" id="alert-nudge-en">You placed >5 rapid orders following a loss. Please step back for 15 minutes to reset emotional discipline.</div>
+          <div class="text-rose-400 text-xs font-medium mt-0.5" id="alert-nudge-hi">नुकसान के बाद आप लगातार तेजी से ट्रेड ले रहे हैं। कृपया 15 मिनट का ब्रेक लें।</div>
+        </div>
+      </div>
+      <div class="flex items-center space-x-2">
+        <div class="px-3 py-1.5 rounded-lg bg-rose-900/50 border border-rose-700/50 font-mono text-xs text-rose-200">
+          Cooldown: <span id="cooldown-timer" class="font-bold">14:59</span>
+        </div>
+        <button onclick="dismissCooldown()" class="px-2.5 py-1 text-xs text-rose-400 hover:text-white">✕</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN DASHBOARD CONTENT -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    
+    <!-- NAVIGATION TABS -->
+    <div class="flex border-b border-gray-800 space-x-8 mb-6 text-sm font-medium">
+      <button onclick="switchTab('guardian')" id="tab-btn-guardian" class="pb-3 border-b-2 border-indigo-500 text-indigo-400 flex items-center space-x-2">
+        <span>🛡️ Risk Guardian</span>
+      </button>
+      <button onclick="switchTab('copilot')" id="tab-btn-copilot" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-200 flex items-center space-x-2">
+        <span>💬 AI Copilot (Gemini Flash)</span>
+      </button>
+      <button onclick="switchTab('backtest')" id="tab-btn-backtest" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-200 flex items-center space-x-2">
+        <span>📈 No-Code Backtesting</span>
+      </button>
+      <button onclick="switchTab('research')" id="tab-btn-research" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-200 flex items-center space-x-2">
+        <span>📑 Vernacular Research (Gemini Pro)</span>
+      </button>
+    </div>
+
+    <!-- TAB 1: RISK GUARDIAN -->
+    <div id="tab-guardian" class="space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Discipline Score Gauge Card -->
+        <div class="glass-card rounded-2xl p-6 relative overflow-hidden">
+          <div class="flex justify-between items-start">
+            <div>
+              <h3 class="text-sm font-medium text-gray-400">Emotional Discipline Score</h3>
+              <p class="text-xs text-gray-500 mt-0.5">Real-time tilt and sizing evaluation</p>
+            </div>
+            <span id="risk-badge" class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              SAFE TIER
+            </span>
+          </div>
+
+          <div class="flex items-center justify-center my-6">
+            <div class="relative flex items-center justify-center w-36 h-36">
+              <svg class="w-full h-full transform -rotate-90">
+                <circle cx="72" cy="72" r="60" stroke="#1f2937" stroke-width="10" fill="transparent" />
+                <circle id="score-circle" cx="72" cy="72" r="60" stroke="#10b981" stroke-width="10" fill="transparent"
+                  stroke-dasharray="376.99" stroke-dashoffset="0" class="transition-all duration-700 ease-out" />
+              </svg>
+              <div class="absolute flex flex-col items-center">
+                <span id="score-number" class="text-4xl font-bold font-mono tracking-tight">100</span>
+                <span class="text-[10px] text-gray-400 uppercase tracking-wider mt-0.5">/ 100</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-xs border-t border-gray-800 pt-4 text-center">
+            <div>
+              <div class="text-gray-500">Loss Streak</div>
+              <div class="font-mono font-semibold text-gray-300 mt-0.5" id="metric-loss-streak">0 trades</div>
+            </div>
+            <div>
+              <div class="text-gray-500">30m Order Velocity</div>
+              <div class="font-mono font-semibold text-gray-300 mt-0.5" id="metric-velocity">0 orders</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Portfolio Health & Circuit Limits -->
+        <div class="glass-card rounded-2xl p-6 flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-start">
+              <div>
+                <h3 class="text-sm font-medium text-gray-400">Trading Capital & Drawdown</h3>
+                <p class="text-xs text-gray-500 mt-0.5">Daily max risk circuit breaker</p>
+              </div>
+              <span class="text-xs font-mono text-gray-400">₹5,00,000 Equity</span>
+            </div>
+
+            <div class="my-5 space-y-3">
+              <div>
+                <div class="flex justify-between text-xs mb-1">
+                  <span class="text-gray-400">Daily Realized PnL</span>
+                  <span class="font-mono font-semibold text-emerald-400" id="val-pnl">₹0.00</span>
+                </div>
+                <div class="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
+                  <div id="pnl-bar" class="bg-emerald-500 h-full transition-all" style="width: 50%;"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1">
+                  <span class="text-gray-400">Max Daily Drawdown Limit (5%)</span>
+                  <span class="font-mono text-rose-400">₹25,000.00</span>
+                </div>
+                <div class="text-[11px] text-gray-500">
+                  Breaching ₹25,000 loss engages an automated 60-minute terminal lockout.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="border-t border-gray-800 pt-3">
+            <div class="text-xs text-gray-400 flex items-center justify-between">
+              <span>Position Sizing Rule:</span>
+              <span class="font-mono text-indigo-300">Max 10% Capital / Trade</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hackathon Live Pitch Controls -->
+        <div class="glass-card rounded-2xl p-6 flex flex-col justify-between border-indigo-500/30">
+          <div>
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-semibold text-indigo-300">⚡ Buildathon Live Demos</h3>
+              <span class="text-[10px] px-1.5 py-0.5 bg-indigo-500/20 text-indigo-300 rounded font-mono">Simulators</span>
+            </div>
+            <p class="text-xs text-gray-400 mt-1">
+              Test real-time behavioral alerts and emotional cooldown triggers instantly without executing live broker orders:
+            </p>
+
+            <div class="mt-4 space-y-2.5">
+              <button onclick="simulateRevengeTrading()" class="w-full py-2.5 px-4 bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white rounded-xl text-xs font-medium shadow-lg transition flex items-center justify-center space-x-2">
+                <span>⚠️ Trigger Revenge Trading Demo</span>
+              </button>
+              <button onclick="resetRiskState()" class="w-full py-2 px-4 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-xs font-medium border border-gray-700 transition">
+                <span>🔄 Reset Score & History</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="text-[11px] text-gray-500 border-t border-gray-800 pt-3">
+            Simulates 5 rapid loss-recovery orders in 10 minutes to trigger the Gemini Flash alert.
+          </div>
+        </div>
+      </div>
+
+      <!-- Actionable Discipline Feedback Feed -->
+      <div class="glass-card rounded-2xl p-6">
+        <h3 class="text-sm font-semibold text-gray-300 mb-3">Guardian Actionable Guidance & Alert Feed</h3>
+        <div id="feedback-list" class="space-y-2.5 text-xs">
+          <div class="p-3 rounded-xl bg-gray-900/60 border border-gray-800 flex items-start space-x-3 text-emerald-300">
+            <span>🛡️</span>
+            <div>
+              <span class="font-semibold">Normal Disciplined State:</span>
+              <span class="text-gray-400 ml-1">No behavioral violations detected. Risk is capped at 1.0–2.0% per trade.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: AI COPILOT -->
+    <div id="tab-copilot" class="hidden space-y-4">
+      <div class="glass-card rounded-2xl p-6 flex flex-col h-[600px]">
+        <div class="flex items-center justify-between pb-4 border-b border-gray-800">
+          <div>
+            <h3 class="text-base font-semibold text-white flex items-center space-x-2">
+              <span>🤖 Gemini 1.5 Flash Copilot</span>
+              <span class="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-mono">TTFT &lt; 1s</span>
+            </h3>
+            <p class="text-xs text-gray-400 mt-0.5">SEBI-compliant risk intelligence enriched with live market ticks</p>
+          </div>
+          <!-- Vernacular Selector -->
+          <div class="flex items-center space-x-2">
+            <span class="text-xs text-gray-400">Language:</span>
+            <select id="chat-lang" class="bg-gray-900 border border-gray-700 text-xs rounded-lg px-2.5 py-1.5 text-gray-200 focus:outline-none focus:border-indigo-500">
+              <option value="en">English (Professional)</option>
+              <option value="hi">हिन्दी (Hindi / Hinglish)</option>
+              <option value="gu">ગુજરાતી (Gujarati)</option>
+              <option value="mr">मराठी (Marathi)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Chat Stream Window -->
+        <div id="chat-messages" class="flex-1 overflow-y-auto py-4 space-y-4 font-sans text-sm">
+          <div class="flex items-start space-x-3">
+            <div class="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center text-xs text-white font-bold flex-shrink-0">
+              AI
+            </div>
+            <div class="p-3.5 rounded-2xl bg-gray-900 border border-gray-800 text-gray-300 max-w-2xl">
+              Hello! I am your <strong>TradeSense AI Risk Co-Pilot</strong>. I can analyze real-time Put-Call Ratios (PCR), calculate drawdown probabilities, explain Option Greeks, and backtest your strategies.
+              <div class="mt-2 text-xs text-gray-500 border-t border-gray-800/80 pt-2">
+                <em>Notice: In compliance with SEBI research regulations, I do not provide direct buy/sell signals or price targets.</em>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Suggested Prompt Chips -->
+        <div class="pt-2 pb-3 flex flex-wrap gap-2 text-xs" id="chat-chips">
+          <button onclick="insertPrompt('What does the current NIFTY PCR indicate for market risk?')" class="px-3 py-1 rounded-full bg-gray-900 hover:bg-gray-800 border border-gray-800 text-gray-300 transition">
+            📊 Analyze NIFTY PCR Risk
+          </button>
+          <button onclick="insertPrompt('Explain the 2% fixed-fractional position sizing rule')" class="px-3 py-1 rounded-full bg-gray-900 hover:bg-gray-800 border border-gray-800 text-gray-300 transition">
+            ⚖️ 2% Sizing Rule
+          </button>
+          <button onclick="insertPrompt('Should I buy BankNifty 51800 Call option today?')" class="px-3 py-1 rounded-full bg-rose-950/40 hover:bg-rose-900/50 border border-rose-800/40 text-rose-300 transition">
+            🛑 Test SEBI Guardrail Refusal
+          </button>
+        </div>
+
+        <!-- Chat Input Form -->
+        <form id="chat-form" onsubmit="sendChatMessage(event)" class="relative flex items-center">
+          <input type="text" id="chat-input" placeholder="Ask about Put-Call Ratio, volatility, position sizing, or backtesting..."
+            class="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 pr-24 text-gray-200">
+          <button type="submit" id="chat-send-btn" class="absolute right-2 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium transition">
+            Send ↵
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- TAB 3: NO-CODE BACKTESTING -->
+    <div id="tab-backtest" class="hidden space-y-6">
+      <div class="glass-card rounded-2xl p-6">
+        <h3 class="text-base font-semibold text-white">📈 Conversational Strategy Backtesting</h3>
+        <p class="text-xs text-gray-400 mt-1">Translate plain English strategy ideas into institutional backtests over 3,000 historical 5-minute candles.</p>
+
+        <!-- Sample Strategy Buttons -->
+        <div class="mt-4 flex flex-wrap gap-2 text-xs">
+          <span class="text-gray-500 py-1">Quick Templates:</span>
+          <button onclick="setBacktestPrompt('Buy Nifty when 5-min candle crosses above 200 EMA with 1:2 risk-reward')" class="px-3 py-1 rounded-lg bg-gray-900 hover:bg-gray-800 border border-gray-800 text-indigo-300">
+            200 EMA Reversal
+          </button>
+          <button onclick="setBacktestPrompt('Test buying when 20 EMA crosses above 50 EMA on BankNifty 5-min chart')" class="px-3 py-1 rounded-lg bg-gray-900 hover:bg-gray-800 border border-gray-800 text-indigo-300">
+            20/50 Golden Cross
+          </button>
+          <button onclick="setBacktestPrompt('Test strategy buying NIFTY when RSI crosses back above 30 from oversold')" class="px-3 py-1 rounded-lg bg-gray-900 hover:bg-gray-800 border border-gray-800 text-indigo-300">
+            RSI 30 Mean Reversion
+          </button>
+        </div>
+
+        <!-- Strategy Input Box -->
+        <div class="mt-4 flex gap-3">
+          <input type="text" id="backtest-input" value="Buy Nifty when 5-min candle crosses above 200 EMA with 1:2 risk-reward"
+            class="flex-1 bg-gray-900 border border-gray-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 text-gray-200">
+          <button onclick="executeBacktest()" id="btn-run-backtest" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-lg transition flex items-center space-x-2">
+            <span>Execute Backtest</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Backtest Results Scorecard (Visible when loaded) -->
+      <div id="backtest-results-panel" class="space-y-6">
+        <!-- KPI Cards Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div class="glass-card rounded-xl p-4 text-center">
+            <span class="text-xs text-gray-500">Win Rate</span>
+            <div class="text-2xl font-bold font-mono text-emerald-400 mt-1" id="kpi-winrate">56.2%</div>
+            <span class="text-[10px] text-gray-400" id="kpi-trades">32 total trades</span>
+          </div>
+          <div class="glass-card rounded-xl p-4 text-center">
+            <span class="text-xs text-gray-500">Profit Factor</span>
+            <div class="text-2xl font-bold font-mono text-indigo-400 mt-1" id="kpi-pf">1.84</div>
+            <span class="text-[10px] text-gray-400">Gross P/L Ratio</span>
+          </div>
+          <div class="glass-card rounded-xl p-4 text-center">
+            <span class="text-xs text-gray-500">Max Drawdown</span>
+            <div class="text-2xl font-bold font-mono text-rose-400 mt-1" id="kpi-dd">3.8%</div>
+            <span class="text-[10px] text-gray-400">Peak-to-Trough</span>
+          </div>
+          <div class="glass-card rounded-xl p-4 text-center">
+            <span class="text-xs text-gray-500">Total Return</span>
+            <div class="text-2xl font-bold font-mono text-emerald-400 mt-1" id="kpi-return">+14.2%</div>
+            <span class="text-[10px] text-gray-400">on ₹5,00,000 Equity</span>
+          </div>
+          <div class="glass-card rounded-xl p-4 text-center">
+            <span class="text-xs text-gray-500">Sharpe Ratio</span>
+            <div class="text-2xl font-bold font-mono text-indigo-300 mt-1" id="kpi-sharpe">1.72</div>
+            <span class="text-[10px] text-gray-400">RBI 6.5% Benchmark</span>
+          </div>
+        </div>
+
+        <!-- Interactive Equity Curve Chart -->
+        <div class="glass-card rounded-2xl p-6">
+          <div class="flex justify-between items-center mb-4">
+            <div>
+              <h4 class="text-sm font-semibold text-gray-200" id="chart-strategy-name">200 EMA Trend Reversal — Equity Curve</h4>
+              <p class="text-xs text-gray-500" id="chart-rule-desc">Long entry when 5-min Close crosses above 200 EMA</p>
+            </div>
+            <span class="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">3,000 Candles Analyzed</span>
+          </div>
+          <div class="h-72 w-full">
+            <canvas id="equityChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: VERNACULAR RESEARCH (GEMINI PRO) -->
+    <div id="tab-research" class="hidden space-y-6">
+      <div class="glass-card rounded-2xl p-6">
+        <div class="flex justify-between items-start">
+          <div>
+            <h3 class="text-base font-semibold text-white">📑 Vernacular Multimodal Filing Analyzer</h3>
+            <p class="text-xs text-gray-400 mt-1">Deep analysis of 50-page corporate announcements, quarterly earnings, and CEO interviews using <strong>Gemini 1.5 Pro</strong>.</p>
+          </div>
+          <div class="flex items-center space-x-2">
+            <span class="text-xs text-gray-400">Language:</span>
+            <select id="research-lang" class="bg-gray-900 border border-gray-700 text-xs rounded-lg px-2.5 py-1.5 text-gray-200">
+              <option value="hi">हिन्दी (Hindi)</option>
+              <option value="gu">ગુજરાતી (Gujarati)</option>
+              <option value="mr">मराठी (Marathi)</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Pre-loaded sample filings buttons -->
+        <div class="mt-4 flex flex-wrap gap-2 text-xs">
+          <span class="text-gray-500 py-1">Sample NSE Filings:</span>
+          <button onclick="loadSampleFiling('Tata Motors Ltd', 'Tata Motors Q3 Consolidated: Revenue grew 15.2% YoY. EBITDA margins expanded by +90 bps driven by premium vehicle mix. Free cash flow generation maintained.', 'Q3 Results')" class="px-3 py-1 rounded bg-gray-900 hover:bg-gray-800 border border-gray-800 text-gray-300">
+            Tata Motors (+90 bps Margin)
+          </button>
+          <button onclick="loadSampleFiling('Asian Paints Ltd', 'Asian Paints Financial Review: Operating revenue grew 5% YoY. Operating margins contracted by -120 bps due to crude oil derivative inflation and higher promotional expenditure.', 'Q2 Earnings')" class="px-3 py-1 rounded bg-gray-900 hover:bg-gray-800 border border-gray-800 text-gray-300">
+            Asian Paints (-120 bps Margin)
+          </button>
+          <button onclick="loadSampleFiling('Infosys Ltd', 'Infosys Large Deal Update: Resilient 20.5% operating margins (+40 bps YoY). Management announced $3.2B in TCV and intact hiring outlook.', 'Investor Presentation')" class="px-3 py-1 rounded bg-gray-900 hover:bg-gray-800 border border-gray-800 text-gray-300">
+            Infosys (+40 bps Deal TCV)
+          </button>
+        </div>
+
+        <div class="mt-4 space-y-3">
+          <textarea id="filing-text" rows="4" placeholder="Paste NSE announcement text or executive interview transcript..."
+            class="w-full bg-gray-900 border border-gray-800 rounded-xl p-3 text-xs text-gray-200 focus:outline-none focus:border-indigo-500 font-mono"></textarea>
+          <div class="flex justify-end">
+            <button onclick="analyzeFilingText()" id="btn-analyze-filing" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-lg transition">
+              Analyze via Gemini 1.5 Pro
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filing Analysis Results Panel -->
+      <div id="filing-results" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Margin Impact & Metrics -->
+        <div class="glass-card rounded-2xl p-6 space-y-4">
+          <div class="flex justify-between items-start">
+            <h4 class="text-sm font-semibold text-gray-200" id="res-company">Tata Motors Ltd — Q3 Results</h4>
+            <span id="res-margin-badge" class="px-2.5 py-1 rounded-full text-xs font-bold font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+              +90 bps EBITDA Delta
+            </span>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-gray-900/80 border border-gray-800">
+            <div class="text-xs text-gray-400 font-medium mb-1">Operating Margin Impact</div>
+            <div class="text-xs text-gray-200" id="res-margin-impact">Operating margins expanded by +90 bps YoY driven by operational leverage.</div>
+          </div>
+
+          <div>
+            <div class="text-xs font-semibold text-gray-400 mb-2">Management Forward Guidance:</div>
+            <ul class="text-xs space-y-1.5 text-gray-300 list-disc list-inside" id="res-guidance">
+              <li>Management reiterated double-digit volume growth guidance for the upcoming fiscal year.</li>
+              <li>Planned Capex to be funded entirely via internal cash accruals without incremental debt.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Regional Vernacular Summary -->
+        <div class="glass-card rounded-2xl p-6 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-3 border-b border-gray-800">
+              <span class="text-xs font-semibold text-indigo-400" id="res-lang-title">🇮🇳 Regional Language Summary (हिन्दी)</span>
+              <span class="text-[10px] text-gray-500 font-mono">Gemini 1.5 Pro Output</span>
+            </div>
+            <div class="mt-4 text-xs text-gray-200 leading-relaxed font-sans whitespace-pre-line" id="res-vernacular">
+              कंपनी के हालिया वित्तीय परिणामों में परिचालन मार्जिन (EBITDA) में +90 bps की मजबूत बढ़त दर्ज की गई है। निवेशकों को कच्चे माल की कीमतों पर सतर्क रहने की सलाह है।
+            </div>
+          </div>
+
+          <div class="text-[10px] text-gray-500 border-t border-gray-800 pt-3">
+            SEBI Compliance Notice: This analysis is educational and fundamental-only; no buy/sell recommendation is implied.
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- STATUTORY SEBI DISCLAIMER FOOTER -->
+  <footer class="border-t border-darkBorder bg-gray-950 py-4 text-center text-xs text-gray-500 px-4">
+    <div class="max-w-5xl mx-auto space-y-1">
+      <p class="font-medium text-gray-400">Statutory Regulatory Notice (SEBI Compliance)</p>
+      <p>TradeSense AI is strictly an educational risk-intelligence and analytical research platform. We do not provide direct buy/sell recommendations, stock tips, or directional price targets. Trading in equities, futures, and options involves substantial risk of loss.</p>
+    </div>
+  </footer>
+
+  <!-- SCRIPT LOGIC -->
+  <script>
+    let equityChartInstance = null;
+    let ws = null;
+
+    // Tab Switching
+    function switchTab(tabId) {
+      ['guardian', 'copilot', 'backtest', 'research'].forEach(t => {
+        document.getElementById(`tab-${t}`).classList.add('hidden');
+        document.getElementById(`tab-btn-${t}`).className = 'pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-200 flex items-center space-x-2';
+      });
+      document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+      document.getElementById(`tab-btn-${tabId}`).className = 'pb-3 border-b-2 border-indigo-500 text-indigo-400 flex items-center space-x-2';
+
+      if (tabId === 'backtest' && !equityChartInstance) {
+        initEquityChart();
+      }
+    }
+
+    // Connect WebSocket
+    function connectWebSocket() {
+      const loc = window.location;
+      const wsProto = loc.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${wsProto}//${loc.host}/api/v1/stream/ws`;
+
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        document.getElementById('ws-indicator').className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
+        document.getElementById('ws-label').textContent = 'Live WS';
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(event.data);
+          if (payload.type === 'TICK') {
+            updateTick(payload.data);
+          } else if (payload.type === 'OPTION_CHAIN') {
+            updateOptionChain(payload.data);
+          } else if (payload.type === 'RISK_ALERT') {
+            showRiskAlert(payload.data);
+          }
+        } catch (e) {}
+      };
+
+      ws.onclose = () => {
+        document.getElementById('ws-indicator').className = 'w-2 h-2 rounded-full bg-amber-500';
+        document.getElementById('ws-label').textContent = 'Reconnecting';
+        setTimeout(connectWebSocket, 3000);
+      };
+    }
+
+    function updateTick(tick) {
+      if (tick.symbol === 'NIFTY 50') {
+        document.getElementById('val-nifty').textContent = tick.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2 });
+        const chgEl = document.getElementById('chg-nifty');
+        chgEl.textContent = `${tick.change_percent >= 0 ? '+' : ''}${tick.change_percent}%`;
+        chgEl.className = tick.change_percent >= 0 ? 'text-emerald-400' : 'text-rose-400';
+      } else if (tick.symbol === 'BANKNIFTY') {
+        document.getElementById('val-banknifty').textContent = tick.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2 });
+        const chgEl = document.getElementById('chg-banknifty');
+        chgEl.textContent = `${tick.change_percent >= 0 ? '+' : ''}${tick.change_percent}%`;
+        chgEl.className = tick.change_percent >= 0 ? 'text-emerald-400' : 'text-rose-400';
+      }
+    }
+
+    function updateOptionChain(chain) {
+      if (chain.underlying === 'NIFTY 50') {
+        document.getElementById('val-pcr').textContent = chain.pcr.toFixed(2);
+        const sentEl = document.getElementById('val-sentiment');
+        sentEl.textContent = chain.sentiment;
+        if (chain.sentiment === 'BULLISH') {
+          sentEl.className = 'text-xs px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300';
+        } else if (chain.sentiment === 'BEARISH') {
+          sentEl.className = 'text-xs px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300';
+        } else {
+          sentEl.className = 'text-xs px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300';
+        }
+      }
+    }
+
+    // Refresh Scorecard
+    async function refreshScorecard() {
+      try {
+        const res = await fetch('/api/v1/risk/scorecard');
+        if (!res.ok) return;
+        const data = await res.json();
+
+        // Update score circle & number
+        document.getElementById('score-number').textContent = data.discipline_score;
+        const offset = 376.99 - (376.99 * (data.discipline_score / 100));
+        const circle = document.getElementById('score-circle');
+        circle.style.strokeDashoffset = offset;
+
+        const badge = document.getElementById('risk-badge');
+        badge.textContent = `${data.risk_level} TIER`;
+        if (data.discipline_score >= 85) {
+          circle.setAttribute('stroke', '#10b981');
+          badge.className = 'px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+        } else if (data.discipline_score >= 70) {
+          circle.setAttribute('stroke', '#f59e0b');
+          badge.className = 'px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20';
+        } else {
+          circle.setAttribute('stroke', '#ef4444');
+          badge.className = 'px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20';
+        }
+
+        document.getElementById('metric-loss-streak').textContent = `${data.loss_streak} trades`;
+        document.getElementById('metric-velocity').textContent = `${data.rapid_trades_30m_count} orders`;
+
+        // Update feedback list
+        const list = document.getElementById('feedback-list');
+        list.innerHTML = '';
+        data.actionable_feedback.forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'p-3 rounded-xl bg-gray-900/60 border border-gray-800 flex items-start space-x-2 text-gray-300';
+          div.innerHTML = `<span>🔹</span><span>${item}</span>`;
+          list.appendChild(div);
+        });
+
+        // Check active cooldown
+        if (data.active_cooldown) {
+          showCooldownModal("Revenge Trading Active", data.cooldown_remaining_seconds);
+        }
+      } catch (e) {}
+    }
+
+    // Simulate Revenge Trading
+    async function simulateRevengeTrading() {
+      try {
+        const res = await fetch('/api/v1/risk/simulate/revenge-trading', { method: 'POST' });
+        const alert = await res.json();
+        showRiskAlert(alert);
+        refreshScorecard();
+      } catch (e) {
+        alert('Error triggering simulation: ' + e);
+      }
+    }
+
+    async function resetRiskState() {
+      await fetch('/api/v1/risk/simulate/reset', { method: 'POST' });
+      dismissCooldown();
+      refreshScorecard();
+    }
+
+    function showRiskAlert(alert) {
+      const banner = document.getElementById('cooldown-banner');
+      banner.classList.remove('hidden');
+      document.getElementById('alert-title').textContent = `Behavioral Alert: ${alert.alert_type}`;
+      document.getElementById('alert-nudge-en').textContent = alert.ai_calm_nudge_en;
+      document.getElementById('alert-nudge-hi').textContent = alert.ai_calm_nudge_hi;
+      startCooldownTimer(alert.cooldown_recommended_minutes * 60);
+      refreshScorecard();
+    }
+
+    function dismissCooldown() {
+      document.getElementById('cooldown-banner').classList.add('hidden');
+    }
+
+    let cooldownInterval = null;
+    function startCooldownTimer(seconds) {
+      clearInterval(cooldownInterval);
+      let rem = seconds;
+      const el = document.getElementById('cooldown-timer');
+      cooldownInterval = setInterval(() => {
+        if (rem <= 0) {
+          clearInterval(cooldownInterval);
+          dismissCooldown();
+          return;
+        }
+        rem--;
+        const m = Math.floor(rem / 60);
+        const s = rem % 60;
+        el.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+      }, 1000);
+    }
+
+    // AI Copilot Chat Streaming
+    function insertPrompt(text) {
+      document.getElementById('chat-input').value = text;
+      document.getElementById('chat-form').dispatchEvent(new Event('submit'));
+    }
+
+    async function sendChatMessage(e) {
+      e.preventDefault();
+      const input = document.getElementById('chat-input');
+      const query = input.value.trim();
+      if (!query) return;
+
+      const lang = document.getElementById('chat-lang').value;
+      input.value = '';
+
+      const container = document.getElementById('chat-messages');
+
+      // Append User Message
+      const userDiv = document.createElement('div');
+      userDiv.className = 'flex items-start space-x-3 justify-end';
+      userDiv.innerHTML = `
+        <div class="p-3.5 rounded-2xl bg-indigo-600 text-white max-w-xl">
+          ${query}
+        </div>
+      `;
+      container.appendChild(userDiv);
+
+      // Append Assistant Placeholder
+      const aiDiv = document.createElement('div');
+      aiDiv.className = 'flex items-start space-x-3';
+      const aiBubble = document.createElement('div');
+      aiBubble.className = 'p-3.5 rounded-2xl bg-gray-900 border border-gray-800 text-gray-300 max-w-2xl whitespace-pre-wrap';
+      aiBubble.innerHTML = '<span class="inline-block animate-pulse">Analyzing risk metrics...</span>';
+
+      aiDiv.innerHTML = `
+        <div class="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center text-xs text-white font-bold flex-shrink-0">
+          AI
+        </div>
+      `;
+      aiDiv.appendChild(aiBubble);
+      container.appendChild(aiDiv);
+      container.scrollTop = container.scrollHeight;
+
+      // Stream SSE Response
+      try {
+        const response = await fetch('/api/v1/chat/stream', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: query, language: lang, include_market_context: true })
+        });
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        aiBubble.innerHTML = '';
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n');
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const text = line.replace('data: ', '');
+              if (text === '[DONE]') break;
+              aiBubble.textContent += text;
+              container.scrollTop = container.scrollHeight;
+            }
+          }
+        }
+      } catch (err) {
+        aiBubble.textContent = "Error streaming response: " + err;
+      }
+    }
+
+    // Backtest Execution & Chart
+    function setBacktestPrompt(p) {
+      document.getElementById('backtest-input').value = p;
+      executeBacktest();
+    }
+
+    async function executeBacktest() {
+      const prompt = document.getElementById('backtest-input').value.trim();
+      const btn = document.getElementById('btn-run-backtest');
+      btn.textContent = 'Simulating...';
+
+      try {
+        const res = await fetch('/api/v1/backtest/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: prompt, symbol: 'NIFTY 50', initial_capital: 500000.0 })
+        });
+        const data = await res.json();
+
+        document.getElementById('kpi-winrate').textContent = `${data.win_rate_pct}%`;
+        document.getElementById('kpi-trades').textContent = `${data.total_trades} total trades (${data.winning_trades}W / ${data.losing_trades}L)`;
+        document.getElementById('kpi-pf').textContent = data.profit_factor.toFixed(2);
+        document.getElementById('kpi-dd').textContent = `${data.max_drawdown_pct}%`;
+        document.getElementById('kpi-return').textContent = `${data.total_return_pct >= 0 ? '+' : ''}${data.total_return_pct}%`;
+        document.getElementById('kpi-sharpe').textContent = data.sharpe_ratio.toFixed(2);
+        document.getElementById('chart-strategy-name').textContent = `${data.strategy_name} — Equity Curve`;
+        document.getElementById('chart-rule-desc').textContent = data.parsed_rule_summary;
+
+        renderEquityChart(data.equity_curve);
+      } catch (e) {
+        alert('Backtest error: ' + e);
+      } finally {
+        btn.textContent = 'Execute Backtest';
+      }
+    }
+
+    function initEquityChart() {
+      executeBacktest();
+    }
+
+    function renderEquityChart(curve) {
+      const ctx = document.getElementById('equityChart').getContext('2d');
+      const labels = curve.map((_, idx) => `Bar ${idx * 10}`);
+      const dataPoints = curve.map(c => c.equity);
+
+      if (equityChartInstance) {
+        equityChartInstance.destroy();
+      }
+
+      equityChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Portfolio Equity (₹)',
+            data: dataPoints,
+            borderColor: '#6366f1',
+            backgroundColor: 'rgba(99, 102, 241, 0.08)',
+            fill: true,
+            tension: 0.3,
+            borderWidth: 2,
+            pointRadius: 0,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { color: 'rgba(255, 255, 255, 0.04)' }, ticks: { color: '#6b7280', font: { size: 10 } } },
+            y: { grid: { color: 'rgba(255, 255, 255, 0.04)' }, ticks: { color: '#6b7280', font: { size: 10 } } }
+          }
+        }
+      });
+    }
+
+    // Filing Analysis
+    function loadSampleFiling(company, text, type) {
+      document.getElementById('filing-text').value = text;
+      analyzeFilingText(company, type);
+    }
+
+    async function analyzeFilingText(companyOverride, typeOverride) {
+      const text = document.getElementById('filing-text').value.trim();
+      if (!text) {
+        alert('Please enter or select filing text');
+        return;
+      }
+      const lang = document.getElementById('research-lang').value;
+      const btn = document.getElementById('btn-analyze-filing');
+      btn.textContent = 'Analyzing...';
+
+      try {
+        const res = await fetch('/api/v1/research/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            document_text: text,
+            company_name: companyOverride || 'NSE Listed Entity',
+            announcement_type: typeOverride || 'Corporate Announcement',
+            language: lang
+          })
+        });
+        const data = await res.json();
+
+        document.getElementById('res-company').textContent = `${data.company_name} — ${data.announcement_type}`;
+        const badge = document.getElementById('res-margin-badge');
+        const bps = data.financial_metrics.ebitda_margin_delta_bps || 0;
+        badge.textContent = `${bps >= 0 ? '+' : ''}${bps} bps EBITDA Delta`;
+        badge.className = bps >= 0 ?
+          'px-2.5 py-1 rounded-full text-xs font-bold font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
+          'px-2.5 py-1 rounded-full text-xs font-bold font-mono bg-rose-500/20 text-rose-400 border border-rose-500/30';
+
+        document.getElementById('res-margin-impact').textContent = data.margin_impact;
+
+        const gList = document.getElementById('res-guidance');
+        gList.innerHTML = '';
+        data.management_guidance.forEach(g => {
+          const li = document.createElement('li');
+          li.textContent = g;
+          gList.appendChild(li);
+        });
+
+        const langMap = { hi: 'हिन्दी (Hindi)', gu: 'ગુજરાતી (Gujarati)', mr: 'मराठी (Marathi)', en: 'English' };
+        document.getElementById('res-lang-title').textContent = `🇮🇳 Regional Language Summary (${langMap[lang] || lang})`;
+        document.getElementById('res-vernacular').textContent = data.vernacular_summary;
+      } catch (e) {
+        alert('Analysis error: ' + e);
+      } finally {
+        btn.textContent = 'Analyze via Gemini 1.5 Pro';
+      }
+    }
+
+    // Startup Initialization
+    window.addEventListener('DOMContentLoaded', () => {
+      connectWebSocket();
+      refreshScorecard();
+      setInterval(refreshScorecard, 10000);
+    });
+  </script>
+</body>
+</html>
+

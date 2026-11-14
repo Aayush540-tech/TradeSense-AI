@@ -260,3 +260,4 @@ class ResearchService:
 
 
 research_service = ResearchService()
+

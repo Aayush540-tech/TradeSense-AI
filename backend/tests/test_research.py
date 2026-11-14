@@ -92,3 +92,4 @@ async def test_sample_filings_endpoint():
         samples = res.json()
         assert len(samples) >= 3
         assert any(s["company_name"] == "Tata Motors Ltd" for s in samples)
+

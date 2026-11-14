@@ -1,7 +1,10 @@
 from contextlib import asynccontextmanager
 import logging
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
 from app.core.redis_client import redis_client
@@ -51,6 +54,11 @@ app.include_router(research.router)
 app.include_router(risk.router)
 app.include_router(backtest.router)
 
+# Mount Static UI Directory
+STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
+if os.path.exists(STATIC_DIR):
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
 
 @app.get("/health", tags=["Health"])
 async def health_check():
@@ -66,8 +74,11 @@ async def health_check():
     }
 
 
-@app.get("/", tags=["Root"])
+@app.get("/", tags=["Dashboard UI"])
 async def root():
+    index_file = os.path.join(STATIC_DIR, "index.html")
+    if os.path.exists(index_file):
+        return FileResponse(index_file)
     return {
         "message": "Welcome to TradeSense AI — Low-Latency Risk Intelligence Platform",
         "docs": "/docs",

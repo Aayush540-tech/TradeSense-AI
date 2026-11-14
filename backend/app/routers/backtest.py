@@ -25,3 +25,4 @@ async def get_sample_backtest_strategies():
     Returns popular pre-configured Indian market strategies for one-click testing in the frontend.
     """
     return backtest_engine.get_sample_strategies()
+

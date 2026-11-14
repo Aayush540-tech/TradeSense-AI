@@ -71,3 +71,4 @@ async def test_sample_strategies_endpoint():
         strategies = res.json()
         assert len(strategies) >= 3
         assert any("200 EMA" in s["title"] for s in strategies)
+

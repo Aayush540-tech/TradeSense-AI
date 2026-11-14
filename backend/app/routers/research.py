@@ -1,8 +1,13 @@
 import logging
-from typing import Optional
+from typing import List, Optional
 from fastapi import APIRouter, UploadFile, File, Form
-from app.services.gemini_service import gemini_service
-from app.schemas.research import ResearchRequest, ResearchResponse
+from app.services.research_service import research_service
+from app.schemas.research import (
+    ResearchRequest,
+    InterviewRequest,
+    ResearchResponse,
+    SampleFilingItem,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -13,9 +18,26 @@ router = APIRouter(prefix="/api/v1/research", tags=["Vernacular Multimodal Resea
 async def analyze_announcement(request: ResearchRequest):
     """
     Parses corporate filings or quarterly announcements using Gemini 1.5 Pro.
-    Returns impact on operating margins, management commentary, and vernacular summaries.
+    Returns impact on operating margins (in bps), management commentary, and vernacular summaries.
     """
-    return await gemini_service.analyze_filing(request)
+    return research_service.analyze_filing(request)
+
+
+@router.post("/interview", response_model=ResearchResponse)
+async def analyze_interview_transcript(request: InterviewRequest):
+    """
+    Analyzes CEO / Management interviews (including YouTube transcripts).
+    Extracts margin trajectory guidance, forward-looking statements, and vernacular summaries.
+    """
+    return research_service.analyze_interview(request)
+
+
+@router.get("/samples", response_model=List[SampleFilingItem])
+async def get_sample_filings():
+    """
+    Provides catalog of pre-loaded Indian corporate filings for quick testing and UI demo.
+    """
+    return research_service.get_sample_filings()
 
 
 @router.post("/upload", response_model=ResearchResponse)
@@ -28,7 +50,6 @@ async def upload_and_analyze_filing(
     Direct upload endpoint for NSE corporate filings (PDF or text).
     """
     content_bytes = await file.read()
-    # Decode text or extract raw text representation
     try:
         extracted_text = content_bytes.decode("utf-8", errors="ignore")
     except Exception:
@@ -40,5 +61,4 @@ async def upload_and_analyze_filing(
         announcement_type="Uploaded Filing",
         language=language or "en"
     )
-    return await gemini_service.analyze_filing(req)
-
+    return research_service.analyze_filing(req)

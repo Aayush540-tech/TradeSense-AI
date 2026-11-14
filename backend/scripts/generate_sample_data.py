@@ -74,3 +74,4 @@ if __name__ == "__main__":
     out_csv = "data/sample_nifty_5min.csv"
     df.to_csv(out_csv, index=False)
     print(f"Generated {len(df)} 5-min candles saved to {out_csv}")
+

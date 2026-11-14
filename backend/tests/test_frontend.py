@@ -15,3 +15,4 @@ async def test_root_serves_html_dashboard():
         assert "Gemini 1.5 Flash Copilot" in content
         assert "Conversational Strategy Backtesting" in content
         assert "SEBI" in content
+

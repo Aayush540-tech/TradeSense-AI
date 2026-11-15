@@ -18,68 +18,160 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Inter', 'sans-serif'],
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
             mono: ['JetBrains Mono', 'monospace'],
           },
           colors: {
-            brand: {
-              50: '#eef2ff',
-              500: '#6366f1',
-              600: '#4f46e5',
-              700: '#4338ca',
-            },
-            darkBg: '#090d16',
-            darkCard: '#111827',
-            darkBorder: '#1f2937',
+            razor: {
+              midnight: '#02042B',   // Razorpay signature deep midnight background
+              card: '#080F26',       // Base card background
+              cardHover: '#0E1A3C',  // Elevated card hover
+              cardBorder: 'rgba(255, 255, 255, 0.08)',
+              blue: '#0B72E7',       // Signature Razorpay Electric Blue
+              blueLight: '#3395FF',  // Bright electric blue
+              cyan: '#00D2D3',       // Neon teal accent
+              emerald: '#10B981',    // Safe / Profit tier
+              rose: '#EF4444',       // Tilt / Alert alarm
+              amber: '#F59E0B',      // Warning tier
+              muted: '#94A3B8',      // Slate text
+            }
+          },
+          backgroundImage: {
+            'razor-gradient': 'linear-gradient(135deg, #0B72E7 0%, #3395FF 60%, #00D2D3 100%)',
+            'razor-card': 'linear-gradient(180deg, rgba(14, 26, 60, 0.7) 0%, rgba(8, 15, 38, 0.95) 100%)',
           }
         }
       }
     }
   </script>
   <style>
-    body { background-color: #090d16; color: #f3f4f6; }
-    .glow-green { box-shadow: 0 0 15px rgba(16, 185, 129, 0.2); }
-    .glow-red { box-shadow: 0 0 15px rgba(239, 68, 68, 0.25); }
-    .glass-card { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
-    @keyframes pulse-ring { 0% { transform: scale(0.95); opacity: 0.8; } 50% { transform: scale(1.05); opacity: 0.4; } 100% { transform: scale(0.95); opacity: 0.8; } }
+    body {
+      background-color: #02042B;
+      color: #F8FAFC;
+      background-image:
+        radial-gradient(circle at 50% 0%, rgba(11, 114, 231, 0.18) 0%, transparent 55%),
+        radial-gradient(circle at 90% 25%, rgba(0, 210, 211, 0.07) 0%, transparent 40%),
+        radial-gradient(circle at 10% 65%, rgba(79, 70, 229, 0.08) 0%, transparent 45%);
+      background-attachment: fixed;
+    }
+    .razor-card {
+      background: linear-gradient(180deg, rgba(14, 26, 60, 0.65) 0%, rgba(8, 15, 38, 0.85) 100%);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 10px 30px -10px rgba(2, 4, 43, 0.5);
+    }
+    .razor-card-glow {
+      border: 1px solid rgba(11, 114, 231, 0.25);
+      box-shadow: 0 0 25px rgba(11, 114, 231, 0.12);
+    }
+    .razor-btn-primary {
+      background: linear-gradient(135deg, #0B72E7 0%, #3395FF 100%);
+      box-shadow: 0 4px 20px rgba(11, 114, 231, 0.35);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .razor-btn-primary:hover {
+      box-shadow: 0 6px 28px rgba(11, 114, 231, 0.55);
+      transform: translateY(-1px);
+    }
+    .razor-slant {
+      clip-path: polygon(0 0, 100% 0, 100% calc(100% - 2.5vw), 0 100%);
+    }
+    .ambient-glow-orb {
+      position: absolute;
+      border-radius: 9999px;
+      filter: blur(90px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); opacity: 0.9; }
+      50% { transform: scale(1.08); opacity: 0.3; }
+      100% { transform: scale(0.95); opacity: 0.9; }
+    }
     .cooldown-pulse { animation: pulse-ring 2s infinite ease-in-out; }
   </style>
 </head>
-<body class="min-h-screen flex flex-col font-sans antialiased text-gray-200">
+<body class="min-h-screen flex flex-col font-sans antialiased text-slate-100 selection:bg-blue-600 selection:text-white">
 
-  <!-- TOP TICKER BAR (Live WebSockets) -->
-  <header class="border-b border-darkBorder bg-gray-950/80 backdrop-blur sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex flex-wrap items-center justify-between gap-4">
-      <div class="flex items-center space-x-3">
-        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center font-bold text-white shadow-lg">
-          TS
+  <!-- TOP RAZORPAY-STYLE NAVIGATION BAR -->
+  <header class="border-b border-white/10 bg-[#02042B]/90 backdrop-blur-md sticky top-0 z-50">
+    <!-- Primary Navbar -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
+      <!-- Brand Logo Mark -->
+      <a href="/" class="flex items-center space-x-3 group">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#0B72E7] to-[#00D2D3] flex items-center justify-center font-bold text-white shadow-[0_0_15px_rgba(11,114,231,0.4)] group-hover:scale-105 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
         </div>
         <div>
-          <span class="font-bold text-lg tracking-tight bg-gradient-to-r from-white via-indigo-100 to-indigo-400 bg-clip-text text-transparent">TradeSense AI</span>
-          <span class="ml-2 text-xs px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-mono">Buildathon 2026</span>
+          <div class="flex items-center space-x-2">
+            <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white via-blue-100 to-[#3395FF] bg-clip-text text-transparent">TradeSense AI</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono uppercase tracking-wider font-semibold">Fintech Risk OS</span>
+          </div>
+          <span class="text-[11px] text-slate-400 hidden sm:block">Built for Startup Buildathon India 2026 • Google Cloud</span>
         </div>
-      </div>
+      </a>
 
-      <!-- Real-Time Index Tickers -->
-      <div class="flex items-center space-x-4 text-xs font-mono overflow-x-auto py-1" id="ticker-container">
-        <div class="flex items-center space-x-1.5 px-3 py-1 rounded-md bg-gray-900 border border-gray-800" id="tick-nifty">
-          <span class="text-gray-400">NIFTY 50:</span>
-          <span class="font-semibold" id="val-nifty">24,150.00</span>
-          <span class="text-emerald-400" id="chg-nifty">+0.22%</span>
+      <!-- Desktop Navigation Anchors -->
+      <nav class="hidden md:flex items-center space-x-6 text-xs font-medium text-slate-300">
+        <a href="#cockpit" onclick="switchTab('guardian')" class="hover:text-white transition flex items-center space-x-1.5">
+          <span>🛡️ Risk Guardian</span>
+        </a>
+        <a href="#cockpit" onclick="switchTab('copilot')" class="hover:text-white transition flex items-center space-x-1.5">
+          <span>💬 Gemini Copilot</span>
+        </a>
+        <a href="#cockpit" onclick="switchTab('backtest')" class="hover:text-white transition flex items-center space-x-1.5">
+          <span>📈 Backtesting</span>
+        </a>
+        <a href="#cockpit" onclick="switchTab('research')" class="hover:text-white transition flex items-center space-x-1.5">
+          <span>📑 Vernacular Research</span>
+        </a>
+      </nav>
+
+      <!-- Trust Badges & Action CTA -->
+      <div class="flex items-center space-x-3">
+        <!-- SEBI Compliance Pill -->
+        <div class="hidden lg:flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          <span>SEBI Compliant</span>
         </div>
-        <div class="flex items-center space-x-1.5 px-3 py-1 rounded-md bg-gray-900 border border-gray-800" id="tick-banknifty">
-          <span class="text-gray-400">BANKNIFTY:</span>
-          <span class="font-semibold" id="val-banknifty">51,800.00</span>
-          <span class="text-emerald-400" id="chg-banknifty">+0.35%</span>
+
+        <!-- Launch Cockpit CTA -->
+        <a href="#cockpit" class="razor-btn-primary px-4 py-2 rounded-xl text-xs font-semibold text-white flex items-center space-x-1.5">
+          <span>Launch Cockpit</span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- Live Market Ticker Sub-bar -->
+    <div class="border-t border-white/5 bg-[#01031E]/90 py-2">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 overflow-x-auto text-xs font-mono">
+        <div class="flex items-center space-x-3 min-w-max" id="ticker-container">
+          <div class="flex items-center space-x-2 px-3 py-1 rounded-lg bg-[#080F26] border border-white/10" id="tick-nifty">
+            <span class="text-slate-400 font-sans font-medium">NIFTY 50</span>
+            <span class="font-bold text-white" id="val-nifty">24,150.00</span>
+            <span class="text-emerald-400" id="chg-nifty">+0.22%</span>
+          </div>
+          <div class="flex items-center space-x-2 px-3 py-1 rounded-lg bg-[#080F26] border border-white/10" id="tick-banknifty">
+            <span class="text-slate-400 font-sans font-medium">BANKNIFTY</span>
+            <span class="font-bold text-white" id="val-banknifty">51,800.00</span>
+            <span class="text-emerald-400" id="chg-banknifty">+0.35%</span>
+          </div>
+          <div class="flex items-center space-x-2 px-3 py-1 rounded-lg bg-[#080F26] border border-white/10" id="tick-pcr">
+            <span class="text-slate-400 font-sans font-medium">NIFTY PCR (OI)</span>
+            <span class="font-bold text-[#3395FF]" id="val-pcr">1.15</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded font-sans font-bold bg-[#0B72E7]/20 text-[#3395FF]" id="val-sentiment">BULLISH</span>
+          </div>
         </div>
-        <div class="flex items-center space-x-1.5 px-3 py-1 rounded-md bg-gray-900 border border-gray-800" id="tick-pcr">
-          <span class="text-gray-400">NIFTY PCR:</span>
-          <span class="font-semibold text-indigo-300" id="val-pcr">1.15</span>
-          <span class="text-xs px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300" id="val-sentiment">BULLISH</span>
-        </div>
-        <div class="flex items-center space-x-1.5 px-2 py-1 rounded text-gray-400">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" id="ws-indicator"></span>
-          <span class="text-[11px]" id="ws-label">Live WS</span>
+
+        <div class="flex items-center space-x-3 text-[11px] text-slate-400 min-w-max">
+          <div class="flex items-center space-x-1.5 px-2.5 py-1 rounded-md bg-[#080F26]/70 border border-white/5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" id="ws-indicator"></span>
+            <span class="font-mono text-slate-300" id="ws-label">Live WS (<50ms)</span>
+          </div>
+          <div class="hidden sm:block text-slate-500 font-sans">Google Cloud Run • asia-south1</div>
         </div>
       </div>
     </div>
@@ -107,8 +199,8 @@
     </div>
   </div>
 
-  <!-- MAIN DASHBOARD CONTENT -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+  <!-- MAIN COCKPIT & DASHBOARD -->
+  <main id="cockpit" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 scroll-mt-24">
     
     <!-- NAVIGATION TABS -->
     <div class="flex border-b border-gray-800 space-x-8 mb-6 text-sm font-medium">

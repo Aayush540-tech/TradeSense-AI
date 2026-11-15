@@ -15,4 +15,11 @@ async def test_root_serves_html_dashboard():
         assert "Gemini 1.5 Flash Copilot" in content
         assert "Conversational Strategy Backtesting" in content
         assert "SEBI" in content
+        assert "Retail F&O Reality" in content
+        assert "93%" in content
+        assert "Four Intelligent Pillars" in content
+        assert "Autonomous Risk & Tilt Guardian" in content
+        assert "Conversational Backtester" in content
+        assert "Vernacular Filing Desk" in content
+        assert "Sub-50ms Cloud Run Telemetry" in content
 

@@ -89,6 +89,38 @@
       100% { transform: scale(0.95); opacity: 0.9; }
     }
     .cooldown-pulse { animation: pulse-ring 2s infinite ease-in-out; }
+    /* Phase D — Cockpit Tab Styles */
+    .tab-btn-active {
+      background: linear-gradient(135deg, rgba(11,114,231,0.18) 0%, rgba(51,149,255,0.10) 100%);
+      color: #3395FF;
+      border: 1px solid rgba(11,114,231,0.35);
+      box-shadow: 0 0 14px rgba(11,114,231,0.12);
+    }
+    .tab-btn-inactive {
+      color: #64748b;
+      border: 1px solid transparent;
+    }
+    .tab-btn-inactive:hover {
+      color: #94a3b8;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    /* Glass card alias used in cockpit tabs */
+    .glass-card {
+      background: linear-gradient(180deg, rgba(14,26,60,0.65) 0%, rgba(8,15,38,0.85) 100%);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    @keyframes ticker-flash-green {
+      0%,100% { color: #34d399; }
+      50% { color: #6ee7b7; }
+    }
+    @keyframes ticker-flash-red {
+      0%,100% { color: #f87171; }
+      50% { color: #fca5a5; }
+    }
+    .flash-green { animation: ticker-flash-green 0.5s ease; }
+    .flash-red   { animation: ticker-flash-red   0.5s ease; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans antialiased text-slate-100 selection:bg-blue-600 selection:text-white">
@@ -767,162 +799,178 @@
   <!-- MAIN COCKPIT & DASHBOARD -->
   <main id="cockpit" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 scroll-mt-24">
     
-    <!-- NAVIGATION TABS -->
-    <div class="flex border-b border-gray-800 space-x-8 mb-6 text-sm font-medium">
-      <button onclick="switchTab('guardian')" id="tab-btn-guardian" class="pb-3 border-b-2 border-indigo-500 text-indigo-400 flex items-center space-x-2">
-        <span>🛡️ Risk Guardian</span>
+    <!-- NAVIGATION TABS — Phase D refined tab bar -->
+    <div class="razor-card rounded-2xl px-4 py-2 mb-6 flex flex-wrap gap-1 border border-white/5">
+      <button onclick="switchTab('guardian')" id="tab-btn-guardian"
+        class="tab-btn-active flex items-center space-x-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200">
+        <span>🛡️</span><span>Risk Guardian</span>
       </button>
-      <button onclick="switchTab('copilot')" id="tab-btn-copilot" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-200 flex items-center space-x-2">
-        <span>💬 AI Copilot (Gemini Flash)</span>
+      <button onclick="switchTab('copilot')" id="tab-btn-copilot"
+        class="tab-btn-inactive flex items-center space-x-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200">
+        <span>💬</span><span class="hidden sm:inline">AI Copilot</span><span class="sm:hidden">Copilot</span>
+        <span class="ml-1 text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 hidden md:inline-flex">TTFT &lt;1s</span>
       </button>
-      <button onclick="switchTab('backtest')" id="tab-btn-backtest" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-200 flex items-center space-x-2">
-        <span>📈 No-Code Backtesting</span>
+      <button onclick="switchTab('backtest')" id="tab-btn-backtest"
+        class="tab-btn-inactive flex items-center space-x-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200">
+        <span>📈</span><span class="hidden sm:inline">No-Code Backtest</span><span class="sm:hidden">Backtest</span>
       </button>
-      <button onclick="switchTab('research')" id="tab-btn-research" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-200 flex items-center space-x-2">
-        <span>📑 Vernacular Research (Gemini Pro)</span>
+      <button onclick="switchTab('research')" id="tab-btn-research"
+        class="tab-btn-inactive flex items-center space-x-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200">
+        <span>📑</span><span class="hidden sm:inline">Vernacular Research</span><span class="sm:hidden">Research</span>
+        <span class="ml-1 text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-500/15 text-[#3395FF] hidden md:inline-flex">Gemini Pro</span>
       </button>
     </div>
 
-    <!-- TAB 1: RISK GUARDIAN -->
+    <!-- TAB 1: RISK GUARDIAN — Phase D refined -->
     <div id="tab-guardian" class="space-y-6">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
         <!-- Discipline Score Gauge Card -->
-        <div class="glass-card rounded-2xl p-6 relative overflow-hidden">
-          <div class="flex justify-between items-start">
+        <div class="razor-card razor-card-glow rounded-2xl p-6 relative overflow-hidden">
+          <div class="flex justify-between items-start mb-1">
             <div>
-              <h3 class="text-sm font-medium text-gray-400">Emotional Discipline Score</h3>
-              <p class="text-xs text-gray-500 mt-0.5">Real-time tilt and sizing evaluation</p>
+              <h3 class="text-sm font-semibold text-slate-200">Emotional Discipline Score</h3>
+              <p class="text-xs text-slate-500 mt-0.5">Real-time tilt & sizing evaluation</p>
             </div>
-            <span id="risk-badge" class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <span id="risk-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
               SAFE TIER
             </span>
           </div>
 
-          <div class="flex items-center justify-center my-6">
+          <div class="flex items-center justify-center my-5">
             <div class="relative flex items-center justify-center w-36 h-36">
               <svg class="w-full h-full transform -rotate-90">
-                <circle cx="72" cy="72" r="60" stroke="#1f2937" stroke-width="10" fill="transparent" />
+                <circle cx="72" cy="72" r="60" stroke="rgba(255,255,255,0.05)" stroke-width="10" fill="transparent"/>
                 <circle id="score-circle" cx="72" cy="72" r="60" stroke="#10b981" stroke-width="10" fill="transparent"
-                  stroke-dasharray="376.99" stroke-dashoffset="0" class="transition-all duration-700 ease-out" />
+                  stroke-dasharray="376.99" stroke-dashoffset="0" stroke-linecap="round" class="transition-all duration-700 ease-out"/>
               </svg>
               <div class="absolute flex flex-col items-center">
-                <span id="score-number" class="text-4xl font-bold font-mono tracking-tight">100</span>
-                <span class="text-[10px] text-gray-400 uppercase tracking-wider mt-0.5">/ 100</span>
+                <span id="score-number" class="text-4xl font-extrabold font-mono text-white tracking-tight">100</span>
+                <span class="text-[10px] text-slate-400 uppercase tracking-wider mt-0.5">/ 100</span>
               </div>
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-2 text-xs border-t border-gray-800 pt-4 text-center">
-            <div>
-              <div class="text-gray-500">Loss Streak</div>
-              <div class="font-mono font-semibold text-gray-300 mt-0.5" id="metric-loss-streak">0 trades</div>
+          <div class="grid grid-cols-2 gap-3 text-xs border-t border-white/5 pt-4">
+            <div class="p-2.5 rounded-xl bg-white/[0.02] text-center">
+              <div class="text-slate-500">Loss Streak</div>
+              <div class="font-mono font-bold text-slate-200 mt-0.5" id="metric-loss-streak">0 trades</div>
             </div>
-            <div>
-              <div class="text-gray-500">30m Order Velocity</div>
-              <div class="font-mono font-semibold text-gray-300 mt-0.5" id="metric-velocity">0 orders</div>
+            <div class="p-2.5 rounded-xl bg-white/[0.02] text-center">
+              <div class="text-slate-500">30m Velocity</div>
+              <div class="font-mono font-bold text-slate-200 mt-0.5" id="metric-velocity">0 orders</div>
             </div>
           </div>
         </div>
 
         <!-- Portfolio Health & Circuit Limits -->
-        <div class="glass-card rounded-2xl p-6 flex flex-col justify-between">
+        <div class="razor-card rounded-2xl p-6 flex flex-col justify-between">
           <div>
-            <div class="flex justify-between items-start">
+            <div class="flex justify-between items-start mb-4">
               <div>
-                <h3 class="text-sm font-medium text-gray-400">Trading Capital & Drawdown</h3>
-                <p class="text-xs text-gray-500 mt-0.5">Daily max risk circuit breaker</p>
+                <h3 class="text-sm font-semibold text-slate-200">Capital & Drawdown Shield</h3>
+                <p class="text-xs text-slate-500 mt-0.5">Daily max risk circuit breaker</p>
               </div>
-              <span class="text-xs font-mono text-gray-400">₹5,00,000 Equity</span>
+              <span class="text-xs font-mono text-slate-400 bg-white/[0.03] px-2 py-0.5 rounded border border-white/5">₹5,00,000 Equity</span>
             </div>
 
-            <div class="my-5 space-y-3">
+            <div class="space-y-4 my-2">
               <div>
-                <div class="flex justify-between text-xs mb-1">
-                  <span class="text-gray-400">Daily Realized PnL</span>
-                  <span class="font-mono font-semibold text-emerald-400" id="val-pnl">₹0.00</span>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <span class="text-slate-400">Daily Realized PnL</span>
+                  <span class="font-mono font-bold text-emerald-400" id="val-pnl">₹0.00</span>
                 </div>
-                <div class="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
-                  <div id="pnl-bar" class="bg-emerald-500 h-full transition-all" style="width: 50%;"></div>
+                <div class="w-full bg-white/5 h-2 rounded-full overflow-hidden">
+                  <div id="pnl-bar" class="bg-emerald-500 h-full rounded-full transition-all" style="width:50%"></div>
                 </div>
               </div>
 
               <div>
                 <div class="flex justify-between text-xs mb-1">
-                  <span class="text-gray-400">Max Daily Drawdown Limit (5%)</span>
-                  <span class="font-mono text-rose-400">₹25,000.00</span>
+                  <span class="text-slate-400">Max Daily Drawdown Limit (5%)</span>
+                  <span class="font-mono text-rose-400">₹25,000</span>
                 </div>
-                <div class="text-[11px] text-gray-500">
-                  Breaching ₹25,000 loss engages an automated 60-minute terminal lockout.
+                <div class="text-[11px] text-slate-500 p-2 rounded-lg bg-rose-500/5 border border-rose-500/10 mt-1">
+                  Breaching ₹25,000 loss engages a 60-minute terminal lockout automatically.
                 </div>
               </div>
             </div>
           </div>
 
-          <div class="border-t border-gray-800 pt-3">
-            <div class="text-xs text-gray-400 flex items-center justify-between">
+          <div class="border-t border-white/5 pt-3 mt-2">
+            <div class="text-xs text-slate-400 flex items-center justify-between">
               <span>Position Sizing Rule:</span>
-              <span class="font-mono text-indigo-300">Max 10% Capital / Trade</span>
+              <span class="font-mono text-[#3395FF]">Max 10% Capital / Trade</span>
             </div>
           </div>
         </div>
 
-        <!-- Hackathon Live Pitch Controls -->
-        <div class="glass-card rounded-2xl p-6 flex flex-col justify-between border-indigo-500/30">
+        <!-- Buildathon Live Demo Controls -->
+        <div class="razor-card rounded-2xl p-6 flex flex-col justify-between border border-[#0B72E7]/20">
           <div>
-            <div class="flex items-center justify-between">
-              <h3 class="text-sm font-semibold text-indigo-300">⚡ Buildathon Live Demos</h3>
-              <span class="text-[10px] px-1.5 py-0.5 bg-indigo-500/20 text-indigo-300 rounded font-mono">Simulators</span>
+            <div class="flex items-center justify-between mb-1">
+              <h3 class="text-sm font-semibold text-[#3395FF]">⚡ Buildathon Live Demos</h3>
+              <span class="text-[10px] px-1.5 py-0.5 bg-blue-500/15 text-[#3395FF] rounded font-mono border border-blue-500/20">Simulators</span>
             </div>
-            <p class="text-xs text-gray-400 mt-1">
-              Test real-time behavioral alerts and emotional cooldown triggers instantly without executing live broker orders:
+            <p class="text-xs text-slate-400 mt-1 mb-5">
+              Test real-time behavioral alerts and emotional cooldown triggers without executing live orders:
             </p>
 
-            <div class="mt-4 space-y-2.5">
-              <button onclick="simulateRevengeTrading()" class="w-full py-2.5 px-4 bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white rounded-xl text-xs font-medium shadow-lg transition flex items-center justify-center space-x-2">
-                <span>⚠️ Trigger Revenge Trading Demo</span>
+            <div class="space-y-2.5">
+              <button onclick="simulateRevengeTrading()"
+                class="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-white transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg"
+                style="background:linear-gradient(135deg,#b91c1c 0%,#ef4444 100%);box-shadow:0 4px 16px rgba(239,68,68,0.3);">
+                <span>⚠️</span><span>Trigger Revenge Trading Demo</span>
               </button>
-              <button onclick="resetRiskState()" class="w-full py-2 px-4 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-xs font-medium border border-gray-700 transition">
-                <span>🔄 Reset Score & History</span>
+              <button onclick="resetRiskState()"
+                class="w-full py-2 px-4 rounded-xl text-xs font-medium text-slate-300 border border-white/10 hover:bg-white/5 transition-all duration-200">
+                🔄 Reset Score & History
               </button>
             </div>
           </div>
 
-          <div class="text-[11px] text-gray-500 border-t border-gray-800 pt-3">
-            Simulates 5 rapid loss-recovery orders in 10 minutes to trigger the Gemini Flash alert.
+          <div class="text-[11px] text-slate-500 border-t border-white/5 pt-3 mt-4">
+            Simulates 5 rapid loss-recovery orders in 10 min to trigger the Gemini Flash tilt alarm.
           </div>
         </div>
       </div>
 
-      <!-- Actionable Discipline Feedback Feed -->
-      <div class="glass-card rounded-2xl p-6">
-        <h3 class="text-sm font-semibold text-gray-300 mb-3">Guardian Actionable Guidance & Alert Feed</h3>
+      <!-- Guardian Alert Feed -->
+      <div class="razor-card rounded-2xl p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-semibold text-slate-200">🔔 Guardian Actionable Guidance & Alert Feed</h3>
+          <span class="text-[10px] text-slate-500 font-mono">Auto-refreshes every 10s</span>
+        </div>
         <div id="feedback-list" class="space-y-2.5 text-xs">
-          <div class="p-3 rounded-xl bg-gray-900/60 border border-gray-800 flex items-start space-x-3 text-emerald-300">
-            <span>🛡️</span>
+          <div class="p-3.5 rounded-xl bg-emerald-500/5 border border-emerald-500/15 flex items-start space-x-3 text-emerald-300">
+            <span class="flex-shrink-0 mt-0.5">🛡️</span>
             <div>
               <span class="font-semibold">Normal Disciplined State:</span>
-              <span class="text-gray-400 ml-1">No behavioral violations detected. Risk is capped at 1.0–2.0% per trade.</span>
+              <span class="text-slate-400 ml-1">No behavioral violations detected. Risk capped at 1.0–2.0% per trade.</span>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- TAB 2: AI COPILOT -->
+    <!-- TAB 2: AI COPILOT — Phase D refined -->
     <div id="tab-copilot" class="hidden space-y-4">
-      <div class="glass-card rounded-2xl p-6 flex flex-col h-[600px]">
-        <div class="flex items-center justify-between pb-4 border-b border-gray-800">
+      <div class="razor-card razor-card-glow rounded-2xl p-6 flex flex-col" style="min-height:600px;">
+
+        <!-- Copilot Header -->
+        <div class="flex flex-wrap items-start justify-between gap-3 pb-4 border-b border-white/5">
           <div>
-            <h3 class="text-base font-semibold text-white flex items-center space-x-2">
-              <span>🤖 Gemini 1.5 Flash Copilot</span>
-              <span class="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-mono">TTFT &lt; 1s</span>
+            <h3 class="text-base font-bold text-white flex items-center space-x-2">
+              <span class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black text-white flex-shrink-0"
+                style="background:linear-gradient(135deg,#0B72E7,#3395FF)">AI</span>
+              <span>Gemini 1.5 Flash Copilot</span>
+              <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 font-mono">TTFT &lt; 1s</span>
             </h3>
-            <p class="text-xs text-gray-400 mt-0.5">SEBI-compliant risk intelligence enriched with live market ticks</p>
+            <p class="text-xs text-slate-400 mt-1 ml-9">SEBI-compliant risk intelligence enriched with live market ticks</p>
           </div>
-          <!-- Vernacular Selector -->
           <div class="flex items-center space-x-2">
-            <span class="text-xs text-gray-400">Language:</span>
-            <select id="chat-lang" class="bg-gray-900 border border-gray-700 text-xs rounded-lg px-2.5 py-1.5 text-gray-200 focus:outline-none focus:border-indigo-500">
+            <span class="text-xs text-slate-400">Language:</span>
+            <select id="chat-lang" class="bg-black/40 border border-white/10 text-xs rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-[#0B72E7] transition-colors">
               <option value="en">English (Professional)</option>
               <option value="hi">हिन्दी (Hindi / Hinglish)</option>
               <option value="gu">ગુજરાતી (Gujarati)</option>
@@ -932,15 +980,17 @@
         </div>
 
         <!-- Chat Stream Window -->
-        <div id="chat-messages" class="flex-1 overflow-y-auto py-4 space-y-4 font-sans text-sm">
+        <div id="chat-messages" class="flex-1 overflow-y-auto py-4 space-y-4 font-sans text-sm" style="min-height:360px;">
           <div class="flex items-start space-x-3">
-            <div class="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center text-xs text-white font-bold flex-shrink-0">
-              AI
-            </div>
-            <div class="p-3.5 rounded-2xl bg-gray-900 border border-gray-800 text-gray-300 max-w-2xl">
-              Hello! I am your <strong>TradeSense AI Risk Co-Pilot</strong>. I can analyze real-time Put-Call Ratios (PCR), calculate drawdown probabilities, explain Option Greeks, and backtest your strategies.
-              <div class="mt-2 text-xs text-gray-500 border-t border-gray-800/80 pt-2">
-                <em>Notice: In compliance with SEBI research regulations, I do not provide direct buy/sell signals or price targets.</em>
+            <div class="w-7 h-7 rounded-lg flex items-center justify-center text-xs text-white font-black flex-shrink-0"
+              style="background:linear-gradient(135deg,#0B72E7,#3395FF)">AI</div>
+            <div class="p-4 rounded-2xl text-slate-200 max-w-2xl border border-[#0B72E7]/20"
+              style="background:linear-gradient(135deg,rgba(11,114,231,0.08),rgba(8,15,38,0.6))">
+              Hello! I am your <strong class="text-white">TradeSense AI Risk Co-Pilot</strong>, powered by Gemini 1.5 Flash.
+              I can analyze real-time Put-Call Ratios (PCR), calculate drawdown probabilities, explain Option Greeks, and backtest your strategies.
+              <div class="mt-2.5 text-xs text-slate-500 border-t border-white/5 pt-2 flex items-start space-x-1.5">
+                <span>🛡️</span>
+                <em>SEBI Compliance: I do not provide direct buy/sell signals or price targets — only educational risk intelligence.</em>
               </div>
             </div>
           </div>
@@ -948,97 +998,120 @@
 
         <!-- Suggested Prompt Chips -->
         <div class="pt-2 pb-3 flex flex-wrap gap-2 text-xs" id="chat-chips">
-          <button onclick="insertPrompt('What does the current NIFTY PCR indicate for market risk?')" class="px-3 py-1 rounded-full bg-gray-900 hover:bg-gray-800 border border-gray-800 text-gray-300 transition">
+          <button onclick="insertPrompt('What does the current NIFTY PCR indicate for market risk?')"
+            class="px-3 py-1.5 rounded-full border border-white/10 text-slate-300 hover:border-[#0B72E7]/40 hover:text-[#3395FF] transition-all duration-200 bg-white/[0.02]">
             📊 Analyze NIFTY PCR Risk
           </button>
-          <button onclick="insertPrompt('Explain the 2% fixed-fractional position sizing rule')" class="px-3 py-1 rounded-full bg-gray-900 hover:bg-gray-800 border border-gray-800 text-gray-300 transition">
+          <button onclick="insertPrompt('Explain the 2% fixed-fractional position sizing rule')"
+            class="px-3 py-1.5 rounded-full border border-white/10 text-slate-300 hover:border-[#0B72E7]/40 hover:text-[#3395FF] transition-all duration-200 bg-white/[0.02]">
             ⚖️ 2% Sizing Rule
           </button>
-          <button onclick="insertPrompt('Should I buy BankNifty 51800 Call option today?')" class="px-3 py-1 rounded-full bg-rose-950/40 hover:bg-rose-900/50 border border-rose-800/40 text-rose-300 transition">
-            🛑 Test SEBI Guardrail Refusal
+          <button onclick="insertPrompt('What is the difference between Theta decay and Delta exposure?')"
+            class="px-3 py-1.5 rounded-full border border-white/10 text-slate-300 hover:border-[#0B72E7]/40 hover:text-[#3395FF] transition-all duration-200 bg-white/[0.02]">
+            🧮 Theta vs Delta Greeks
+          </button>
+          <button onclick="insertPrompt('Should I buy BankNifty 51800 Call option today?')"
+            class="px-3 py-1.5 rounded-full border border-rose-500/20 text-rose-400 hover:bg-rose-500/5 transition-all duration-200 bg-white/[0.01]">
+            🛑 Test SEBI Guardrail
           </button>
         </div>
 
         <!-- Chat Input Form -->
-        <form id="chat-form" onsubmit="sendChatMessage(event)" class="relative flex items-center">
-          <input type="text" id="chat-input" placeholder="Ask about Put-Call Ratio, volatility, position sizing, or backtesting..."
-            class="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 pr-24 text-gray-200">
-          <button type="submit" id="chat-send-btn" class="absolute right-2 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium transition">
+        <form id="chat-form" onsubmit="sendChatMessage(event)" class="relative flex items-center gap-2">
+          <input type="text" id="chat-input"
+            placeholder="Ask about PCR, volatility, position sizing, or option Greeks..."
+            class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-[#0B72E7] transition-colors pr-24">
+          <button type="submit" id="chat-send-btn"
+            class="absolute right-2 px-4 py-1.5 rounded-lg text-xs font-semibold text-white transition-all duration-200"
+            style="background:linear-gradient(135deg,#0B72E7,#3395FF);box-shadow:0 2px 10px rgba(11,114,231,0.3);">
             Send ↵
           </button>
         </form>
       </div>
     </div>
 
-    <!-- TAB 3: NO-CODE BACKTESTING -->
+    <!-- TAB 3: NO-CODE BACKTESTING — Phase D refined -->
     <div id="tab-backtest" class="hidden space-y-6">
-      <div class="glass-card rounded-2xl p-6">
-        <h3 class="text-base font-semibold text-white">📈 Conversational Strategy Backtesting</h3>
-        <p class="text-xs text-gray-400 mt-1">Translate plain English strategy ideas into institutional backtests over 3,000 historical 5-minute candles.</p>
 
-        <!-- Sample Strategy Buttons -->
-        <div class="mt-4 flex flex-wrap gap-2 text-xs">
-          <span class="text-gray-500 py-1">Quick Templates:</span>
-          <button onclick="setBacktestPrompt('Buy Nifty when 5-min candle crosses above 200 EMA with 1:2 risk-reward')" class="px-3 py-1 rounded-lg bg-gray-900 hover:bg-gray-800 border border-gray-800 text-indigo-300">
+      <!-- Strategy Input Card -->
+      <div class="razor-card razor-card-glow rounded-2xl p-6">
+        <div class="flex flex-wrap items-start justify-between gap-2 mb-4">
+          <div>
+            <h3 class="text-base font-bold text-white">📈 Conversational Strategy Backtesting</h3>
+            <p class="text-xs text-slate-400 mt-1">Translate plain English strategy ideas into vectorized backtests over 3,000 historical 5-min NIFTY candles.</p>
+          </div>
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-[#00D2D3] border border-cyan-500/20">3,000 Candles · EMA/RSI Engine</span>
+        </div>
+
+        <!-- Quick Template Chips -->
+        <div class="flex flex-wrap gap-2 text-xs mb-4">
+          <span class="text-slate-500 py-1">Quick Templates:</span>
+          <button onclick="setBacktestPrompt('Buy Nifty when 5-min candle crosses above 200 EMA with 1:2 risk-reward')"
+            class="px-3 py-1 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] border border-white/8 text-[#3395FF] transition-all">
             200 EMA Reversal
           </button>
-          <button onclick="setBacktestPrompt('Test buying when 20 EMA crosses above 50 EMA on BankNifty 5-min chart')" class="px-3 py-1 rounded-lg bg-gray-900 hover:bg-gray-800 border border-gray-800 text-indigo-300">
+          <button onclick="setBacktestPrompt('Test buying when 20 EMA crosses above 50 EMA on BankNifty 5-min chart')"
+            class="px-3 py-1 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] border border-white/8 text-[#3395FF] transition-all">
             20/50 Golden Cross
           </button>
-          <button onclick="setBacktestPrompt('Test strategy buying NIFTY when RSI crosses back above 30 from oversold')" class="px-3 py-1 rounded-lg bg-gray-900 hover:bg-gray-800 border border-gray-800 text-indigo-300">
+          <button onclick="setBacktestPrompt('Test strategy buying NIFTY when RSI crosses back above 30 from oversold')"
+            class="px-3 py-1 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] border border-white/8 text-[#3395FF] transition-all">
             RSI 30 Mean Reversion
           </button>
         </div>
 
-        <!-- Strategy Input Box -->
-        <div class="mt-4 flex gap-3">
+        <!-- Strategy Input + Run Button -->
+        <div class="flex gap-3">
           <input type="text" id="backtest-input" value="Buy Nifty when 5-min candle crosses above 200 EMA with 1:2 risk-reward"
-            class="flex-1 bg-gray-900 border border-gray-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 text-gray-200">
-          <button onclick="executeBacktest()" id="btn-run-backtest" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-lg transition flex items-center space-x-2">
-            <span>Execute Backtest</span>
+            class="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-[#0B72E7] transition-colors">
+          <button onclick="executeBacktest()" id="btn-run-backtest"
+            class="px-5 py-2.5 rounded-xl text-xs font-semibold text-white transition-all duration-200 flex items-center space-x-2 whitespace-nowrap"
+            style="background:linear-gradient(135deg,#0B72E7,#3395FF);box-shadow:0 4px 16px rgba(11,114,231,0.3);">
+            <span>⚡</span><span>Execute Backtest</span>
           </button>
         </div>
       </div>
 
-      <!-- Backtest Results Scorecard (Visible when loaded) -->
+      <!-- Results Panel -->
       <div id="backtest-results-panel" class="space-y-6">
-        <!-- KPI Cards Grid -->
+
+        <!-- KPI Cards -->
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <div class="glass-card rounded-xl p-4 text-center">
-            <span class="text-xs text-gray-500">Win Rate</span>
-            <div class="text-2xl font-bold font-mono text-emerald-400 mt-1" id="kpi-winrate">56.2%</div>
-            <span class="text-[10px] text-gray-400" id="kpi-trades">32 total trades</span>
+          <div class="razor-card rounded-xl p-4 text-center border border-emerald-500/10">
+            <span class="text-[11px] text-slate-400 uppercase tracking-wider">Win Rate</span>
+            <div class="text-2xl font-extrabold font-mono text-emerald-400 mt-1" id="kpi-winrate">56.2%</div>
+            <span class="text-[10px] text-slate-500" id="kpi-trades">32 total trades</span>
           </div>
-          <div class="glass-card rounded-xl p-4 text-center">
-            <span class="text-xs text-gray-500">Profit Factor</span>
-            <div class="text-2xl font-bold font-mono text-indigo-400 mt-1" id="kpi-pf">1.84</div>
-            <span class="text-[10px] text-gray-400">Gross P/L Ratio</span>
+          <div class="razor-card rounded-xl p-4 text-center border border-blue-500/10">
+            <span class="text-[11px] text-slate-400 uppercase tracking-wider">Profit Factor</span>
+            <div class="text-2xl font-extrabold font-mono text-[#3395FF] mt-1" id="kpi-pf">1.84</div>
+            <span class="text-[10px] text-slate-500">Gross P/L Ratio</span>
           </div>
-          <div class="glass-card rounded-xl p-4 text-center">
-            <span class="text-xs text-gray-500">Max Drawdown</span>
-            <div class="text-2xl font-bold font-mono text-rose-400 mt-1" id="kpi-dd">3.8%</div>
-            <span class="text-[10px] text-gray-400">Peak-to-Trough</span>
+          <div class="razor-card rounded-xl p-4 text-center border border-rose-500/10">
+            <span class="text-[11px] text-slate-400 uppercase tracking-wider">Max Drawdown</span>
+            <div class="text-2xl font-extrabold font-mono text-rose-400 mt-1" id="kpi-dd">3.8%</div>
+            <span class="text-[10px] text-slate-500">Peak-to-Trough</span>
           </div>
-          <div class="glass-card rounded-xl p-4 text-center">
-            <span class="text-xs text-gray-500">Total Return</span>
-            <div class="text-2xl font-bold font-mono text-emerald-400 mt-1" id="kpi-return">+14.2%</div>
-            <span class="text-[10px] text-gray-400">on ₹5,00,000 Equity</span>
+          <div class="razor-card rounded-xl p-4 text-center border border-emerald-500/10">
+            <span class="text-[11px] text-slate-400 uppercase tracking-wider">Total Return</span>
+            <div class="text-2xl font-extrabold font-mono text-emerald-400 mt-1" id="kpi-return">+14.2%</div>
+            <span class="text-[10px] text-slate-500">on ₹5,00,000 Equity</span>
           </div>
-          <div class="glass-card rounded-xl p-4 text-center">
-            <span class="text-xs text-gray-500">Sharpe Ratio</span>
-            <div class="text-2xl font-bold font-mono text-indigo-300 mt-1" id="kpi-sharpe">1.72</div>
-            <span class="text-[10px] text-gray-400">RBI 6.5% Benchmark</span>
+          <div class="razor-card rounded-xl p-4 text-center border border-cyan-500/10">
+            <span class="text-[11px] text-slate-400 uppercase tracking-wider">Sharpe Ratio</span>
+            <div class="text-2xl font-extrabold font-mono text-[#00D2D3] mt-1" id="kpi-sharpe">1.72</div>
+            <span class="text-[10px] text-slate-500">RBI 6.5% Benchmark</span>
           </div>
         </div>
 
-        <!-- Interactive Equity Curve Chart -->
-        <div class="glass-card rounded-2xl p-6">
-          <div class="flex justify-between items-center mb-4">
+        <!-- Equity Curve Chart -->
+        <div class="razor-card rounded-2xl p-6">
+          <div class="flex flex-wrap justify-between items-center mb-5 gap-2">
             <div>
-              <h4 class="text-sm font-semibold text-gray-200" id="chart-strategy-name">200 EMA Trend Reversal — Equity Curve</h4>
-              <p class="text-xs text-gray-500" id="chart-rule-desc">Long entry when 5-min Close crosses above 200 EMA</p>
+              <h4 class="text-sm font-bold text-white" id="chart-strategy-name">200 EMA Trend Reversal — Equity Curve</h4>
+              <p class="text-xs text-slate-400 mt-0.5" id="chart-rule-desc">Long entry when 5-min Close crosses above 200 EMA</p>
             </div>
-            <span class="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">3,000 Candles Analyzed</span>
+            <span class="text-xs font-mono text-[#00D2D3] bg-cyan-500/10 px-2.5 py-1 rounded-full border border-cyan-500/20">3,000 Candles Analyzed</span>
           </div>
           <div class="h-72 w-full">
             <canvas id="equityChart"></canvas>
@@ -1047,17 +1120,21 @@
       </div>
     </div>
 
-    <!-- TAB 4: VERNACULAR RESEARCH (GEMINI PRO) -->
+    <!-- TAB 4: VERNACULAR RESEARCH (GEMINI PRO) — Phase D refined -->
     <div id="tab-research" class="hidden space-y-6">
-      <div class="glass-card rounded-2xl p-6">
-        <div class="flex justify-between items-start">
+      <div class="razor-card razor-card-glow rounded-2xl p-6">
+        <div class="flex flex-wrap justify-between items-start gap-3">
           <div>
-            <h3 class="text-base font-semibold text-white">📑 Vernacular Multimodal Filing Analyzer</h3>
-            <p class="text-xs text-gray-400 mt-1">Deep analysis of 50-page corporate announcements, quarterly earnings, and CEO interviews using <strong>Gemini 1.5 Pro</strong>.</p>
+            <h3 class="text-base font-bold text-white flex items-center space-x-2">
+              <span>📑</span>
+              <span>Vernacular Multimodal Filing Analyzer</span>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/15 text-[#3395FF] border border-blue-500/20">Gemini 1.5 Pro</span>
+            </h3>
+            <p class="text-xs text-slate-400 mt-1">Deep fundamental analysis of 50-page NSE corporate filings, quarterly earnings, and CEO concall transcripts.</p>
           </div>
           <div class="flex items-center space-x-2">
-            <span class="text-xs text-gray-400">Language:</span>
-            <select id="research-lang" class="bg-gray-900 border border-gray-700 text-xs rounded-lg px-2.5 py-1.5 text-gray-200">
+            <span class="text-xs text-slate-400">Language:</span>
+            <select id="research-lang" class="bg-black/40 border border-white/10 text-xs rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-[#0B72E7] transition-colors">
               <option value="hi">हिन्दी (Hindi)</option>
               <option value="gu">ગુજરાતી (Gujarati)</option>
               <option value="mr">मराठी (Marathi)</option>
@@ -1068,24 +1145,32 @@
 
         <!-- Pre-loaded sample filings buttons -->
         <div class="mt-4 flex flex-wrap gap-2 text-xs">
-          <span class="text-gray-500 py-1">Sample NSE Filings:</span>
-          <button onclick="loadSampleFiling('Tata Motors Ltd', 'Tata Motors Q3 Consolidated: Revenue grew 15.2% YoY. EBITDA margins expanded by +90 bps driven by premium vehicle mix. Free cash flow generation maintained.', 'Q3 Results')" class="px-3 py-1 rounded bg-gray-900 hover:bg-gray-800 border border-gray-800 text-gray-300">
-            Tata Motors (+90 bps Margin)
+          <span class="text-slate-500 py-1">Sample NSE Filings:</span>
+          <button onclick="loadSampleFiling('Tata Motors Ltd', 'Tata Motors Q3 Consolidated: Revenue grew 15.2% YoY. EBITDA margins expanded by +90 bps driven by premium vehicle mix. Free cash flow generation maintained.', 'Q3 Results')"
+            class="px-3 py-1 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] border border-white/8 text-slate-200 transition-all flex items-center space-x-1.5">
+            <span>Tata Motors</span>
+            <span class="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">+90 bps</span>
           </button>
-          <button onclick="loadSampleFiling('Asian Paints Ltd', 'Asian Paints Financial Review: Operating revenue grew 5% YoY. Operating margins contracted by -120 bps due to crude oil derivative inflation and higher promotional expenditure.', 'Q2 Earnings')" class="px-3 py-1 rounded bg-gray-900 hover:bg-gray-800 border border-gray-800 text-gray-300">
-            Asian Paints (-120 bps Margin)
+          <button onclick="loadSampleFiling('Asian Paints Ltd', 'Asian Paints Financial Review: Operating revenue grew 5% YoY. Operating margins contracted by -120 bps due to crude oil derivative inflation and higher promotional expenditure.', 'Q2 Earnings')"
+            class="px-3 py-1 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] border border-white/8 text-slate-200 transition-all flex items-center space-x-1.5">
+            <span>Asian Paints</span>
+            <span class="text-[10px] font-mono text-rose-400 bg-rose-500/10 px-1.5 py-0.5 rounded">-120 bps</span>
           </button>
-          <button onclick="loadSampleFiling('Infosys Ltd', 'Infosys Large Deal Update: Resilient 20.5% operating margins (+40 bps YoY). Management announced $3.2B in TCV and intact hiring outlook.', 'Investor Presentation')" class="px-3 py-1 rounded bg-gray-900 hover:bg-gray-800 border border-gray-800 text-gray-300">
-            Infosys (+40 bps Deal TCV)
+          <button onclick="loadSampleFiling('Infosys Ltd', 'Infosys Large Deal Update: Resilient 20.5% operating margins (+40 bps YoY). Management announced $3.2B in TCV and intact hiring outlook.', 'Investor Presentation')"
+            class="px-3 py-1 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] border border-white/8 text-slate-200 transition-all flex items-center space-x-1.5">
+            <span>Infosys</span>
+            <span class="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">+40 bps</span>
           </button>
         </div>
 
         <div class="mt-4 space-y-3">
-          <textarea id="filing-text" rows="4" placeholder="Paste NSE announcement text or executive interview transcript..."
-            class="w-full bg-gray-900 border border-gray-800 rounded-xl p-3 text-xs text-gray-200 focus:outline-none focus:border-indigo-500 font-mono"></textarea>
+          <textarea id="filing-text" rows="4" placeholder="Paste NSE announcement text, quarterly filing excerpt, or executive interview transcript..."
+            class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-xs text-slate-200 focus:outline-none focus:border-[#0B72E7] font-mono transition-colors"></textarea>
           <div class="flex justify-end">
-            <button onclick="analyzeFilingText()" id="btn-analyze-filing" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-lg transition">
-              Analyze via Gemini 1.5 Pro
+            <button onclick="analyzeFilingText()" id="btn-analyze-filing"
+              class="px-5 py-2.5 rounded-xl text-xs font-semibold text-white transition-all duration-200 flex items-center space-x-2"
+              style="background:linear-gradient(135deg,#0B72E7,#3395FF);box-shadow:0 4px 16px rgba(11,114,231,0.3);">
+              <span>📑</span><span>Analyze via Gemini 1.5 Pro</span>
             </button>
           </div>
         </div>
@@ -1094,22 +1179,22 @@
       <!-- Filing Analysis Results Panel -->
       <div id="filing-results" class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Margin Impact & Metrics -->
-        <div class="glass-card rounded-2xl p-6 space-y-4">
-          <div class="flex justify-between items-start">
-            <h4 class="text-sm font-semibold text-gray-200" id="res-company">Tata Motors Ltd — Q3 Results</h4>
-            <span id="res-margin-badge" class="px-2.5 py-1 rounded-full text-xs font-bold font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+        <div class="razor-card rounded-2xl p-6 space-y-4">
+          <div class="flex justify-between items-start gap-2">
+            <h4 class="text-sm font-bold text-white" id="res-company">Tata Motors Ltd — Q3 Results</h4>
+            <span id="res-margin-badge" class="px-2.5 py-1 rounded-full text-xs font-bold font-mono bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 whitespace-nowrap">
               +90 bps EBITDA Delta
             </span>
           </div>
 
-          <div class="p-3.5 rounded-xl bg-gray-900/80 border border-gray-800">
-            <div class="text-xs text-gray-400 font-medium mb-1">Operating Margin Impact</div>
-            <div class="text-xs text-gray-200" id="res-margin-impact">Operating margins expanded by +90 bps YoY driven by operational leverage.</div>
+          <div class="p-3.5 rounded-xl bg-black/40 border border-white/5">
+            <div class="text-[11px] text-slate-400 font-semibold uppercase tracking-wider mb-1">Operating Margin Impact</div>
+            <div class="text-xs text-slate-200 leading-relaxed" id="res-margin-impact">Operating margins expanded by +90 bps YoY driven by operational leverage.</div>
           </div>
 
           <div>
-            <div class="text-xs font-semibold text-gray-400 mb-2">Management Forward Guidance:</div>
-            <ul class="text-xs space-y-1.5 text-gray-300 list-disc list-inside" id="res-guidance">
+            <div class="text-xs font-semibold text-slate-400 mb-2">Management Forward Guidance:</div>
+            <ul class="text-xs space-y-1.5 text-slate-300 list-disc list-inside" id="res-guidance">
               <li>Management reiterated double-digit volume growth guidance for the upcoming fiscal year.</li>
               <li>Planned Capex to be funded entirely via internal cash accruals without incremental debt.</li>
             </ul>
@@ -1117,30 +1202,34 @@
         </div>
 
         <!-- Regional Vernacular Summary -->
-        <div class="glass-card rounded-2xl p-6 flex flex-col justify-between">
+        <div class="razor-card rounded-2xl p-6 flex flex-col justify-between">
           <div>
-            <div class="flex items-center justify-between pb-3 border-b border-gray-800">
-              <span class="text-xs font-semibold text-indigo-400" id="res-lang-title">🇮🇳 Regional Language Summary (हिन्दी)</span>
-              <span class="text-[10px] text-gray-500 font-mono">Gemini 1.5 Pro Output</span>
+            <div class="flex items-center justify-between pb-3 border-b border-white/5">
+              <span class="text-xs font-bold text-[#3395FF]" id="res-lang-title">🇮🇳 Regional Language Summary (हिन्दी)</span>
+              <span class="text-[10px] text-slate-500 font-mono">Gemini 1.5 Pro Output</span>
             </div>
-            <div class="mt-4 text-xs text-gray-200 leading-relaxed font-sans whitespace-pre-line" id="res-vernacular">
+            <div class="mt-4 text-xs text-slate-200 leading-relaxed font-sans whitespace-pre-line p-3.5 rounded-xl bg-black/30 border border-white/5" id="res-vernacular">
               कंपनी के हालिया वित्तीय परिणामों में परिचालन मार्जिन (EBITDA) में +90 bps की मजबूत बढ़त दर्ज की गई है। निवेशकों को कच्चे माल की कीमतों पर सतर्क रहने की सलाह है।
             </div>
           </div>
 
-          <div class="text-[10px] text-gray-500 border-t border-gray-800 pt-3">
-            SEBI Compliance Notice: This analysis is educational and fundamental-only; no buy/sell recommendation is implied.
+          <div class="text-[10px] text-slate-500 border-t border-white/5 pt-3 mt-4 flex items-center space-x-1.5">
+            <span>🛡️</span>
+            <span>SEBI Compliance Notice: Educational & fundamental analysis only; no buy/sell recommendation implied.</span>
           </div>
         </div>
       </div>
     </div>
   </main>
 
-  <!-- STATUTORY SEBI DISCLAIMER FOOTER -->
-  <footer class="border-t border-darkBorder bg-gray-950 py-4 text-center text-xs text-gray-500 px-4">
-    <div class="max-w-5xl mx-auto space-y-1">
-      <p class="font-medium text-gray-400">Statutory Regulatory Notice (SEBI Compliance)</p>
-      <p>TradeSense AI is strictly an educational risk-intelligence and analytical research platform. We do not provide direct buy/sell recommendations, stock tips, or directional price targets. Trading in equities, futures, and options involves substantial risk of loss.</p>
+  <!-- STATUTORY SEBI DISCLAIMER FOOTER — Phase D refined -->
+  <footer class="border-t border-white/10 bg-[#01031E]/95 backdrop-blur-md py-6 text-center text-xs text-slate-400 px-4 mt-8">
+    <div class="max-w-5xl mx-auto space-y-1.5">
+      <p class="font-semibold text-slate-300 flex items-center justify-center space-x-1.5">
+        <span>🛡️</span>
+        <span>Statutory Regulatory Notice (SEBI Compliance)</span>
+      </p>
+      <p class="text-slate-500 leading-relaxed">TradeSense AI is strictly an educational risk-intelligence and analytical research platform. We do not provide direct buy/sell recommendations, stock tips, or directional price targets. Trading in equities, futures, and options involves substantial risk of loss.</p>
     </div>
   </footer>
 
@@ -1149,14 +1238,15 @@
     let equityChartInstance = null;
     let ws = null;
 
-    // Tab Switching
+    // Tab Switching (Phase D active/inactive pill styles)
     function switchTab(tabId) {
+      const baseBtn = 'flex items-center space-x-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200';
       ['guardian', 'copilot', 'backtest', 'research'].forEach(t => {
         document.getElementById(`tab-${t}`).classList.add('hidden');
-        document.getElementById(`tab-btn-${t}`).className = 'pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-200 flex items-center space-x-2';
+        document.getElementById(`tab-btn-${t}`).className = `tab-btn-inactive ${baseBtn}`;
       });
       document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-      document.getElementById(`tab-btn-${tabId}`).className = 'pb-3 border-b-2 border-indigo-500 text-indigo-400 flex items-center space-x-2';
+      document.getElementById(`tab-btn-${tabId}`).className = `tab-btn-active ${baseBtn}`;
 
       if (tabId === 'backtest' && !equityChartInstance) {
         initEquityChart();
@@ -1197,13 +1287,22 @@
     }
 
     function updateTick(tick) {
+      const flashClass = tick.change_percent >= 0 ? 'flash-green' : 'flash-red';
       if (tick.symbol === 'NIFTY 50') {
-        document.getElementById('val-nifty').textContent = tick.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2 });
+        const valEl = document.getElementById('val-nifty');
+        valEl.textContent = tick.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2 });
+        valEl.classList.remove('flash-green', 'flash-red');
+        void valEl.offsetWidth;
+        valEl.classList.add(flashClass);
         const chgEl = document.getElementById('chg-nifty');
         chgEl.textContent = `${tick.change_percent >= 0 ? '+' : ''}${tick.change_percent}%`;
         chgEl.className = tick.change_percent >= 0 ? 'text-emerald-400' : 'text-rose-400';
       } else if (tick.symbol === 'BANKNIFTY') {
-        document.getElementById('val-banknifty').textContent = tick.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2 });
+        const valEl = document.getElementById('val-banknifty');
+        valEl.textContent = tick.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2 });
+        valEl.classList.remove('flash-green', 'flash-red');
+        void valEl.offsetWidth;
+        valEl.classList.add(flashClass);
         const chgEl = document.getElementById('chg-banknifty');
         chgEl.textContent = `${tick.change_percent >= 0 ? '+' : ''}${tick.change_percent}%`;
         chgEl.className = tick.change_percent >= 0 ? 'text-emerald-400' : 'text-rose-400';
@@ -1259,14 +1358,20 @@
         list.innerHTML = '';
         data.actionable_feedback.forEach(item => {
           const div = document.createElement('div');
-          div.className = 'p-3 rounded-xl bg-gray-900/60 border border-gray-800 flex items-start space-x-2 text-gray-300';
-          div.innerHTML = `<span>🔹</span><span>${item}</span>`;
+          div.className = 'p-3.5 rounded-xl bg-white/[0.02] border border-white/8 flex items-start space-x-2.5 text-slate-300';
+          const icon = document.createElement('span');
+          icon.textContent = '🔹';
+          const msg = document.createElement('span');
+          msg.textContent = item;
+          div.appendChild(icon);
+          div.appendChild(msg);
           list.appendChild(div);
         });
 
         // Check active cooldown
         if (data.active_cooldown) {
-          showCooldownModal("Revenge Trading Active", data.cooldown_remaining_seconds);
+          document.getElementById('cooldown-banner').classList.remove('hidden');
+          startCooldownTimer(data.cooldown_remaining_seconds || 900);
         }
       } catch (e) {}
     }
@@ -1352,22 +1457,23 @@
       // Append User Message
       const userDiv = document.createElement('div');
       userDiv.className = 'flex items-start space-x-3 justify-end';
-      userDiv.innerHTML = `
-        <div class="p-3.5 rounded-2xl bg-indigo-600 text-white max-w-xl">
-          ${query}
-        </div>
-      `;
+      const userBubble = document.createElement('div');
+      userBubble.className = 'p-3.5 rounded-2xl text-white max-w-xl text-sm shadow-md';
+      userBubble.style.background = 'linear-gradient(135deg,#0B72E7,#3395FF)';
+      userBubble.textContent = query;
+      userDiv.appendChild(userBubble);
       container.appendChild(userDiv);
 
       // Append Assistant Placeholder
       const aiDiv = document.createElement('div');
       aiDiv.className = 'flex items-start space-x-3';
       const aiBubble = document.createElement('div');
-      aiBubble.className = 'p-3.5 rounded-2xl bg-gray-900 border border-gray-800 text-gray-300 max-w-2xl whitespace-pre-wrap';
-      aiBubble.innerHTML = '<span class="inline-block animate-pulse">Analyzing risk metrics...</span>';
+      aiBubble.className = 'p-4 rounded-2xl border border-[#0B72E7]/20 text-slate-200 max-w-2xl whitespace-pre-wrap leading-relaxed';
+      aiBubble.style.background = 'linear-gradient(135deg,rgba(11,114,231,0.08),rgba(8,15,38,0.6))';
+      aiBubble.innerHTML = '<span class="inline-block animate-pulse text-[#3395FF]">Analyzing risk metrics via Gemini 1.5 Flash...</span>';
 
       aiDiv.innerHTML = `
-        <div class="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center text-xs text-white font-bold flex-shrink-0">
+        <div class="w-7 h-7 rounded-lg flex items-center justify-center text-xs text-white font-black flex-shrink-0" style="background:linear-gradient(135deg,#0B72E7,#3395FF)">
           AI
         </div>
       `;
@@ -1438,7 +1544,7 @@
       } catch (e) {
         alert('Backtest error: ' + e);
       } finally {
-        btn.textContent = 'Execute Backtest';
+        btn.innerHTML = '<span>⚡</span><span>Execute Backtest</span>';
       }
     }
 
@@ -1455,6 +1561,15 @@
         equityChartInstance.destroy();
       }
 
+      const areaGrad = ctx.createLinearGradient(0, 0, 0, 280);
+      areaGrad.addColorStop(0, 'rgba(11, 114, 231, 0.32)');
+      areaGrad.addColorStop(0.6, 'rgba(0, 210, 211, 0.08)');
+      areaGrad.addColorStop(1, 'rgba(2, 4, 43, 0.0)');
+
+      const lineGrad = ctx.createLinearGradient(0, 0, ctx.canvas.width || 600, 0);
+      lineGrad.addColorStop(0, '#0B72E7');
+      lineGrad.addColorStop(1, '#00D2D3');
+
       equityChartInstance = new Chart(ctx, {
         type: 'line',
         data: {
@@ -1462,21 +1577,49 @@
           datasets: [{
             label: 'Portfolio Equity (₹)',
             data: dataPoints,
-            borderColor: '#6366f1',
-            backgroundColor: 'rgba(99, 102, 241, 0.08)',
+            borderColor: lineGrad,
+            backgroundColor: areaGrad,
             fill: true,
-            tension: 0.3,
-            borderWidth: 2,
+            tension: 0.35,
+            borderWidth: 2.5,
             pointRadius: 0,
+            pointHoverRadius: 5,
+            pointHoverBackgroundColor: '#00D2D3',
+            pointHoverBorderColor: '#ffffff',
+            pointHoverBorderWidth: 2,
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(8, 15, 38, 0.95)',
+              borderColor: 'rgba(11, 114, 231, 0.4)',
+              borderWidth: 1,
+              titleColor: '#94a3b8',
+              bodyColor: '#f8fafc',
+              padding: 10,
+              callbacks: {
+                label: (ctx) => ` Equity: ₹${Number(ctx.parsed.y).toLocaleString('en-IN')}`
+              }
+            }
+          },
           scales: {
-            x: { grid: { color: 'rgba(255, 255, 255, 0.04)' }, ticks: { color: '#6b7280', font: { size: 10 } } },
-            y: { grid: { color: 'rgba(255, 255, 255, 0.04)' }, ticks: { color: '#6b7280', font: { size: 10 } } }
+            x: {
+              grid: { color: 'rgba(255, 255, 255, 0.04)' },
+              ticks: { color: '#64748b', font: { size: 10, family: 'JetBrains Mono' } }
+            },
+            y: {
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: {
+                color: '#64748b',
+                font: { size: 10, family: 'JetBrains Mono' },
+                callback: (val) => `₹${Number(val).toLocaleString('en-IN')}`
+              }
+            }
           }
         }
       });
@@ -1535,7 +1678,7 @@
       } catch (e) {
         alert('Analysis error: ' + e);
       } finally {
-        btn.textContent = 'Analyze via Gemini 1.5 Pro';
+        btn.innerHTML = '<span>📑</span><span>Analyze via Gemini 1.5 Pro</span>';
       }
     }
 

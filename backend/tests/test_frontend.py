@@ -22,4 +22,9 @@ async def test_root_serves_html_dashboard():
         assert "Conversational Backtester" in content
         assert "Vernacular Filing Desk" in content
         assert "Sub-50ms Cloud Run Telemetry" in content
+        assert "Capital & Drawdown Shield" in content
+        assert "Theta vs Delta Greeks" in content
+        assert "Vernacular Multimodal Filing Analyzer" in content
+        assert "Statutory Regulatory Notice" in content
+        assert "tab-btn-active" in content
 
